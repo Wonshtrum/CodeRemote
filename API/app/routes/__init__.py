@@ -1,1 +1,1 @@
-import app.routes.test
+import app.routes.test, app.routes.compile

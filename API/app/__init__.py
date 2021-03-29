@@ -1,10 +1,10 @@
 from fastapi import FastAPI
-from app import config
+from app.config import *
 import pymongo
 
-mongo=pymongo.MongoClient(config.MONGO_URL,config.MONGO_PORT)
+mongo=pymongo.MongoClient(MONGO_URL,MONGO_PORT,username=MONGO_USER,password=MONGO_PWD)
+db = mongo[MONGO_DATABASE]
 
-print(mongo.list_database_names())
 api = FastAPI()
 
 from app import routes
