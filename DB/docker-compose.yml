@@ -9,6 +9,8 @@ services:
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: root
+    volumes:
+      - ./mongod.conf:/etc/mongod.conf
     ports:
       - "27017:27017"
 
