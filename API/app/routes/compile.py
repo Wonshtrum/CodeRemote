@@ -6,12 +6,12 @@ from secrets import token_bytes
 
 class Profile(BaseModel):
 	token: str
-	ram:float
-	cpu:float
-	time:float
+	ram: float
+	cpu: float
+	time: float
 
 class File(BaseModel):
-	name:str
+	name: str
 	content:str
 
 class Demande(BaseModel):
@@ -23,12 +23,12 @@ class Demande(BaseModel):
 
 
 @api.put('/compile')
-async def put_message(dem:Demande):
-	coll=db["requests"]
-	dem["state"]=0
-	hash=str(token_bytes(32))
-	dem["hash"]=hash
+async def put_request(dem: Demande):
+	coll = db["requests"]
+	dem.state = 0
+	id = str(token_bytes(32))
+	dem.hash = id
 	coll.insert(dem)
-	return {"status":"Compile request added successfully","hash":hash}
+	return {"status": "Compile request added successfully","hash": id}
 
 
