@@ -28,7 +28,7 @@ async def put_request(dem: Demande):
 	dem.state = 0
 	id = str(token_bytes(32))
 	dem.hash = id
-	coll.insert(dem)
+	coll.insert(dem.dict())
 	return {"status": "Compile request added successfully","hash": id}
 
 
