@@ -1,2 +1,4 @@
 import app.routes.ping
-import app.routes.test
+import app.routes.work
+import app.routes.load
+import app.routes.result
