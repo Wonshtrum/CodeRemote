@@ -1,1 +1,1 @@
-import app.routes.test, app.routes.compile
+import app.routes.test, app.routes.compile, app.routes.languages

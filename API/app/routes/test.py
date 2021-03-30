@@ -9,8 +9,8 @@ class Message(BaseModel):
 @api.put('/test')
 async def put_message(msg:Message):	
 	db = mongo["dbTest"]
-	coll=db["collecTest"]
+	coll = db["collecTest"]
 	coll.insert(msg)
-	return {"status":"Message added successfully"}
+	return {"status": "Message added successfully"}
 
 

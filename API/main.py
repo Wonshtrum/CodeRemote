@@ -3,4 +3,4 @@ import uvicorn
 
 
 if __name__ == '__main__':
-	uvicorn.run(api, host=config.HOST, port=config.PORT)
+	uvicorn.run("main:api", host=config.HOST, port=config.PORT, reload=True)

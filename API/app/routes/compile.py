@@ -1,4 +1,4 @@
-from app import api,db
+from app import api, db
 from typing import Optional,List
 #from fastapi import FastAPI, Response, status
 from pydantic import BaseModel
@@ -29,6 +29,6 @@ async def put_request(dem: Demande):
 	id = str(token_urlsafe(32))
 	dem.hash = id
 	coll.insert(dem.dict())
-	return {"status": "Compile request added successfully","hash": id}
+	return {"status": "Compile request added successfully", "hash": id}
 
 
