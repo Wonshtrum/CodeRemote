@@ -6,8 +6,9 @@ const axios = require('axios').default;
 const fs = require('fs');
 
 
-var prefix = config.prefix;
-var languages = ['python3','c++','java','c'];
+let prefix = config.prefix;
+let status = ["SUCCESS", "COMPILATION_FAILED", "CRASHED", "LIMIT_REACHED"]
+
 
 
 //Log in pour le bot
@@ -15,14 +16,18 @@ client.on('ready', () => {
   console.log(`Logged in as ${client.user.tag}!`);
 });
 
-
 client.on('ready', () => {
-    //var languages = axios.get('localhost:8080/languages');
 
     client.user.setActivity(`${prefix}help`,{type:"PLAYING"});
 });
 
-
+let serverRequestTemplate = {
+    "lang" : String,
+    "files" : {
+        "name" : String,
+        "content" : String
+    }
+}
 
 client.on('message', message =>{
     if (message.content.startsWith(`${prefix}`)) {
@@ -45,14 +50,50 @@ client.on('message', message =>{
         }
 
         if (command.startsWith('run')){
-            //var codelanguage = message.content.slice(5);
-            var codeString = message.content;
-            let codearray = codeString.split('\n');
-            codearray.splice().pop();
-            let cleancode2 = codearray.join('\n');
-            let cleancode = Discord.Util.escapeCodeBlock(cleancode2);
-            //message.channel.send(`Le language selectionné est : ${codelanguage}`);
-            message.channel.send(`${cleancode}`);
+
+            //Bloc pour récupérer le language
+            let language = message.content.split('\n');
+            let cleanlanguage = language.shift().slice(8).split(' ')[0];
+
+            //Bloc pour récupérer un string du code
+            let code = message.content.split('\n');
+            code.shift();
+            code.pop();
+            let code2 = code.join('\n');
+            let cleancode = Discord.Util.escapeCodeBlock(code2);
+
+            //sendtoserver(cleanlanguage,cleancode);
+            //Construction de l'objet à envoyer a l'API
+            let request = Object.create(serverRequestTemplate);
+            request = {
+                "lang" : cleanlanguage,
+                "files" : [{
+                    "name" : "Discord Request",
+                    "content" : cleancode
+                }]
+            }
+            axios.put(`http://127.0.0.1:4382/compile`,request)
+            .then(response =>{ 
+
+                message.channel.send("Response API : "+ `${response.data.data.hash} \n`)
+
+                let hash = {hash : response.data.data.hash}; 
+
+                    axios.post(`http://127.0.0.1:4382/result`,hash)
+                    .then(response => {
+                        message.channel.send("Status : " + `${status[response.data.data.logs.status]} \n`);
+                        message.channel.send("Message : " + `${response.data.data.logs.message} \n`);
+
+                        message.channel.send("```"+ `${response.data.data.stdout.slice(0,1900)} \n`+ "```");
+                        message.channel.send("```"+ `${response.data.data.stderr.slice(0,1900)} \n`+ "```");
+                    })
+                    .catch(error => console.log(error));
+            })
+            .catch(error => console.log(error));
+
+            
+
+            
         }
 
 
@@ -70,9 +111,16 @@ client.on('message', message =>{
                 **${prefix}ping** - Renvoie ton ping
                 **${prefix}prefix [prefix]** - Change le préfix des commandes
                 **${prefix}run code** - Run du code et renvoie le résultat
-
+                **${prefix}languages** - Renvoie une liste des languages disponibles
 
                 `)
+                break;
+
+            case "languages":
+                axios.get(`http://127.0.0.1:4382/languages`)
+                .then(response => message.channel.send("Voici une liste des languages disponibles : "+ `${response.data.data} \n`))
+                .catch(error => console.log(error));
+
                 break;
             default:
                 break;
@@ -80,9 +128,6 @@ client.on('message', message =>{
     }
 })
 
-function getAPI() {
-    
-}
 
 
 
