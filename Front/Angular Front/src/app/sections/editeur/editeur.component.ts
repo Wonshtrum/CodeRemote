@@ -75,17 +75,13 @@ export interface IAlert {
         <h4 class="mt-lg mb-4">
         <span style=" color:#f1de6d">Bloc retour</span>
       </h4>
-      <pre id="retour" class="overflow-scrolls" style=" color:white">
-        {{retour}}
-      </pre>
+      <pre id="retour" class="" style=" color:white ;   max-height : 50vh;overflow: scroll;">{{this.resultPost.stdout}}</pre>
     </div>
     <div style=" background-color:#282a36 ;">
         <h4 class="mt-lg mb-4">
         <span  style=" color:#f1de6d">Bloc erreur</span>
       </h4>
-      <pre id="err" class="overflow-scroll"  style=" color:white">
-        {{error}}
-      </pre>
+      <pre id="err" class="overflow-scroll"  style=" color:white ;max-height : 50vh;overflow: scroll;">{{this.resultPost.stderr}}</pre>
     </div>
   </div>
 </div>
@@ -120,7 +116,16 @@ export class EditeurComponent implements AfterViewInit {
   response;
   test = "";
   hash;
-  resultPost;
+  resultPost : any={
+    "stdout": "string",
+    "stderr": "ERRRRRRRERRRRRRRERRRRRRRERRRRRRRERRRRRRRERRRRRRRERRRRRRRERRRRRRRERRRRRRRERRRRRRRERRRRRRRERRRRRRRERRRRRRRERRRRRRRERRRRRRRERRRRRRRERRRRRRRERRRRRRRERRRRRRR",
+    "logs": {
+      "id":0 ,
+      "message": "string",
+      "compilation_time": 0.222,
+      "execution_time": 0.1111
+    }
+  };
   error;
   retour;
 
@@ -156,29 +161,33 @@ export class EditeurComponent implements AfterViewInit {
       ]
     };
     console.log(data);
-
+    console.log("rzrzerze")
     this.http.put('http://127.0.0.1:4382/compile',data)
     .subscribe(response  => {
       this.hash = response
-      // If response comes hideloader() function is called
-      // to hide that loader 
-      console.log(response)
+      this.hash = this.hash.data.hash
 
-    });
-    this.http.post('http://127.0.0.1:4382/result',this.hash)
-    .subscribe(response  => {
-      this.resultPost=response
-      // If response comes hideloader() function is called
-      // to hide that loader 
+      console.log(this.hash)
       console.log(response)
+      this.http.post('http://127.0.0.1:4382/result',{"hash":this.hash})
+      .subscribe(response   => {
 
+        this.resultPost=response
+        this.resultPost = this.resultPost.data
+        console.log(response)
+        document.getElementById("res").className = "container";
+        this.stock=this.alerts[this.resultPost.logs.status];
+        
+      });
     });
+    console.log("zeezrzerfsdf")
+
+  
 
 
 
     // axios post renvoie res succes avec le texte
-    document.getElementById("res").className = "container";
-    this.stock=this.alerts[this.post.logs.id];
+
     // let content_retour = document.createTextNode(this.post.stdout);
     // let content_err = document.createTextNode(this.post.stderr);
     // document.getElementById("retour").appendChild(content_retour);
