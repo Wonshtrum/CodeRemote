@@ -1,5 +1,6 @@
 
 import { AfterViewInit, Component, ElementRef, Input, ViewChild } from "@angular/core";
+import {HttpClient} from '@angular/common/http';
 import * as ace from "ace-builds";
 export interface IAlert {
   id: number;
@@ -8,10 +9,12 @@ export interface IAlert {
   message: string;
   icon?: string;
 }
+
+
 @Component({
   selector: "app-editeur",
   template: `
-  <section class="section pb-0 section-components">
+  <section class="section pb-0 section-components" (oninit)="loadLanguage() ">
   <div class="container mb-5">
   <div class="col-lg-2 col-sm-2">
   <div class="form-group">
@@ -24,18 +27,30 @@ export interface IAlert {
     (change)='onOptionsSelected(mySelect.value)'>
    <option class='option' 
    *ngFor='let option of dropDownData' 
-   [value]="data[option] || 'text'">{{option}}</option>
+   [value]="datas[option] || 'text'">{{option}}</option>
 </select>
   </div>
   </div>
- 
+  <div class="d-flex justify-content-between  ">
+
+    <div>
+    <ul>
+    <li>Milk</li>
+    <li>Cheese
+        <ul>
+            <li>Blue cheese</li>
+            <li>Feta</li>
+        </ul>
+    </li>
+</ul>
+    </div>
     <div
       class="app-ace-editor"
       id="app-ace-editor"
       #editor
       style="width: 100%;height: 500px;"
     ></div>
-
+  </div>
 <button class="btn btn-icon btn-3 btn-primary btn-lg pull-right" type="button" (click)="run()">
 <span class="btn-inner--text">Tester code</span>
 </button>
@@ -55,23 +70,21 @@ export interface IAlert {
       <span class="alert-inner--text">  <strong>{{stock.strong}} </strong>{{ stock.message }}</span>
     </ngb-alert>
   </div>
-  <div class="d-flex justify-content-between  ">
-    <div>
+  <div class="container ">
+    <div style=" background-color:#282a36 ;">
         <h4 class="mt-lg mb-4">
-        <span>Bloc retour</span>
+        <span style=" color:#f1de6d">Bloc retour</span>
       </h4>
-      <pre id="retour">
-
+      <pre id="retour" class="overflow-scrolls" style=" color:white">
+        {{retour}}
       </pre>
     </div>
-    <div>
+    <div style=" background-color:#282a36 ;">
         <h4 class="mt-lg mb-4">
-        <span>Bloc erreur</span>
+        <span  style=" color:#f1de6d">Bloc erreur</span>
       </h4>
-      <pre id="err">
-      Traceback (most recent call last):
-      
-      ZeroDivisionError: division by zero
+      <pre id="err" class="overflow-scroll"  style=" color:white">
+        {{error}}
       </pre>
     </div>
   </div>
@@ -92,7 +105,7 @@ export interface IAlert {
 
 export class EditeurComponent implements AfterViewInit {
 
-  data ={
+  datas ={
     "python3":"python",
     "c++":"c_cpp",
     "c":"c_cpp",
@@ -101,15 +114,22 @@ export class EditeurComponent implements AfterViewInit {
   }
 
   stock={}
-  dropDownData= ['python3', 'c++', 'c','php','java','prolog']
-
+  lang={}
+  // dropDownData= ['python3', 'c++', 'c','php','java','prolog']
+  dropDownData ;
+  response;
+  test = "";
+  hash;
+  resultPost;
+  error;
+  retour;
 
   res_Id_post = 2
   alert: IAlert;
 
   post={
     "stdout": "string",
-    "stderr": "ERRRRRRR",
+    "stderr": "ERRRRRRRERRRRRRRERRRRRRRERRRRRRRERRRRRRRERRRRRRRERRRRRRRERRRRRRRERRRRRRRERRRRRRRERRRRRRRERRRRRRRERRRRRRRERRRRRRRERRRRRRRERRRRRRRERRRRRRRERRRRRRRERRRRRRR",
     "logs": {
       "id":0 ,
       "message": "string",
@@ -136,13 +156,35 @@ export class EditeurComponent implements AfterViewInit {
       ]
     };
     console.log(data);
+
+    this.http.put('http://127.0.0.1:4382/compile',data)
+    .subscribe(response  => {
+      this.hash = response
+      // If response comes hideloader() function is called
+      // to hide that loader 
+      console.log(response)
+
+    });
+    this.http.post('http://127.0.0.1:4382/result',this.hash)
+    .subscribe(response  => {
+      this.resultPost=response
+      // If response comes hideloader() function is called
+      // to hide that loader 
+      console.log(response)
+
+    });
+
+
+
     // axios post renvoie res succes avec le texte
     document.getElementById("res").className = "container";
     this.stock=this.alerts[this.post.logs.id];
-    let content_retour = document.createTextNode(this.post.stdout);
-    let content_err = document.createTextNode(this.post.stderr);
-    document.getElementById("retour").appendChild(content_retour);
-    document.getElementById("err").appendChild(content_err);
+    // let content_retour = document.createTextNode(this.post.stdout);
+    // let content_err = document.createTextNode(this.post.stderr);
+    // document.getElementById("retour").appendChild(content_retour);
+    // document.getElementById("err").appendChild(content_err);
+    this.retour=this.post.stdout
+    this.error=this.post.stderr
     
   }
 
@@ -153,6 +195,24 @@ export class EditeurComponent implements AfterViewInit {
   }
   @ViewChild("editor") private editor: ElementRef<HTMLElement>;
 
+
+  ngOnInit(){
+
+    
+    this.http.get('http://127.0.0.1:4382/languages')
+    .subscribe(response  => {
+  
+      // If response comes hideloader() function is called
+      // to hide that loader 
+      this.response = response
+      console.log(this.response)
+      this.dropDownData = this.response.data
+    
+
+      
+
+    });
+  }
   ngAfterViewInit(): void {
     ace.config.set("fontSize", "14px");
     ace.config.set(
@@ -165,13 +225,18 @@ export class EditeurComponent implements AfterViewInit {
     aceEditor.session.setMode("ace/mode/python");
     aceEditor.on("change", () => {
       console.log(aceEditor.getValue());
+      this.test= aceEditor.getValue();
+      console.log(this.test)
     });
   }
 
   @Input()
   public alerts: Array<IAlert> = [];
   private backup: Array<IAlert>;
-  constructor() {
+
+
+
+  constructor(private http : HttpClient) {
       this.alerts.push({
           id: 0,
           type: 'success',

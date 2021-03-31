@@ -6,6 +6,7 @@ import { NouisliderModule } from 'ng2-nouislider';
 import { JwBootstrapSwitchNg2Module } from 'jw-bootstrap-switch-ng2';
 import { RouterModule } from '@angular/router';
 
+import { HttpClientModule } from '@angular/common/http';
 import { SectionsComponent } from './sections.component';
 import { ButtonsSectionComponent } from './buttons-section/buttons-section.component';
 import { InputsSectionComponent } from './inputs-section/inputs-section.component';
@@ -30,6 +31,8 @@ import { EditeurComponent } from './editeur/editeur.component';
   ],
 
   imports: [
+  
+  HttpClientModule,
     CommonModule,
     FormsModule,
     NgbModule,
