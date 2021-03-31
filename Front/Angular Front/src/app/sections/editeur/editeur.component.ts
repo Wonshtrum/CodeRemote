@@ -41,7 +41,7 @@ export interface IAlert {
 </button>
 </div>
 
-<div class="container" id="res" style="display:hidden;">
+<div class="container invisible" id="res" >
   <h3 class="mt-lg mb-4">
     <span>Résultats</span>
   </h3>
@@ -55,21 +55,20 @@ export interface IAlert {
       <span class="alert-inner--text">  <strong>{{stock.strong}} </strong>{{ stock.message }}</span>
     </ngb-alert>
   </div>
-  <div class="d-flex justify-content-between">
+  <div class="d-flex justify-content-between  ">
     <div>
         <h4 class="mt-lg mb-4">
         <span>Bloc retour</span>
       </h4>
-      <pre>
-      The value of x after swapping: 10
-      The value of y after swapping: 5
+      <pre id="retour">
+
       </pre>
     </div>
     <div>
         <h4 class="mt-lg mb-4">
         <span>Bloc erreur</span>
       </h4>
-      <pre>
+      <pre id="err">
       Traceback (most recent call last):
       
       ZeroDivisionError: division by zero
@@ -105,10 +104,19 @@ export class EditeurComponent implements AfterViewInit {
   dropDownData= ['python3', 'c++', 'c','php','java','prolog']
 
 
-  res_Id_post = 0
+  res_Id_post = 2
   alert: IAlert;
 
-
+  post={
+    "stdout": "string",
+    "stderr": "ERRRRRRR",
+    "logs": {
+      "id":0 ,
+      "message": "string",
+      "compilation_time": 0.222,
+      "execution_time": 0.1111
+    }
+  }
   public run(){
     var e = (document.getElementById("selectLangage")) as HTMLSelectElement;
     var strLangage = e.options[e.selectedIndex].text;
@@ -129,9 +137,13 @@ export class EditeurComponent implements AfterViewInit {
     };
     console.log(data);
     // axios post renvoie res succes avec le texte
+    document.getElementById("res").className = "container";
+    this.stock=this.alerts[this.post.logs.id];
+    let content_retour = document.createTextNode(this.post.stdout);
+    let content_err = document.createTextNode(this.post.stderr);
+    document.getElementById("retour").appendChild(content_retour);
+    document.getElementById("err").appendChild(content_err);
     
-    this.stock=this.alerts[this.res_Id_post];
-    document.getElementById("res").style.display = "block";
   }
 
   public onOptionsSelected(event) {
