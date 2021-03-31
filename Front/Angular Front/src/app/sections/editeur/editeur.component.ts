@@ -1,7 +1,13 @@
 
-import { AfterViewInit, Component, ElementRef, ViewChild } from "@angular/core";
+import { AfterViewInit, Component, ElementRef, Input, ViewChild } from "@angular/core";
 import * as ace from "ace-builds";
-
+export interface IAlert {
+  id: number;
+  type: string;
+  strong?: string;
+  message: string;
+  icon?: string;
+}
 @Component({
   selector: "app-editeur",
   template: `
@@ -34,6 +40,44 @@ import * as ace from "ace-builds";
 <span class="btn-inner--text">Tester code</span>
 </button>
 </div>
+
+<div class="container" id="res" style="display:hidden;">
+  <h3 class="mt-lg mb-4">
+    <span>Résultats</span>
+  </h3>
+  <div>
+    <ngb-alert [type]="stock.type"  [dismissible]="true"  (close)="close(stock)" >
+      <ng-container *ngIf="stock.icon">
+        <div class="alert-inner--icon">
+            <i class="{{stock.icon}}"></i>
+        </div>
+      </ng-container>
+      <span class="alert-inner--text">  <strong>{{stock.strong}} </strong>{{ stock.message }}</span>
+    </ngb-alert>
+  </div>
+  <div class="d-flex justify-content-between">
+    <div>
+        <h4 class="mt-lg mb-4">
+        <span>Bloc retour</span>
+      </h4>
+      <pre>
+      The value of x after swapping: 10
+      The value of y after swapping: 5
+      </pre>
+    </div>
+    <div>
+        <h4 class="mt-lg mb-4">
+        <span>Bloc erreur</span>
+      </h4>
+      <pre>
+      Traceback (most recent call last):
+      
+      ZeroDivisionError: division by zero
+      </pre>
+    </div>
+  </div>
+</div>
+
 </section>
   `,
   styles: [
@@ -57,11 +101,12 @@ export class EditeurComponent implements AfterViewInit {
     "java":"java"
   }
 
-    
+  stock={}
   dropDownData= ['python3', 'c++', 'c','php','java','prolog']
 
 
-
+  res_Id_post = 0
+  alert: IAlert;
 
 
   public run(){
@@ -83,7 +128,10 @@ export class EditeurComponent implements AfterViewInit {
       ]
     };
     console.log(data);
-    return(data);
+    // axios post renvoie res succes avec le texte
+    
+    this.stock=this.alerts[this.res_Id_post];
+    document.getElementById("res").style.display = "block";
   }
 
   public onOptionsSelected(event) {
@@ -106,5 +154,41 @@ export class EditeurComponent implements AfterViewInit {
     aceEditor.on("change", () => {
       console.log(aceEditor.getValue());
     });
+  }
+
+  @Input()
+  public alerts: Array<IAlert> = [];
+  private backup: Array<IAlert>;
+  constructor() {
+      this.alerts.push({
+          id: 0,
+          type: 'success',
+          strong: 'Success!',
+          message: 'La compilation a réussi !',
+          icon: 'ni ni-like-2'
+      }, {
+          id: 1,
+          strong: 'Info!',
+          type: 'info',
+          message: 'La compilation est en cours !',
+          icon: 'ni ni-bell-55'
+      }, {
+          id: 2,
+          type: 'warning',
+          strong: 'Warning!',
+          message: 'La compilation met trop de temps à s\'éxécuter !',
+          icon: 'ni ni-bell-55'
+      }, {
+          id: 3,
+          type: 'danger',
+          strong: 'Danger!',
+          message: 'La compilation a échoué!',
+          icon: 'ni ni-support-16'
+      });
+      this.backup = this.alerts.map((alert: IAlert) => Object.assign({}, alert));
+  }
+
+  close(alert: IAlert) {
+    this.alerts.splice(this.alerts.indexOf(alert), 1);
   }
 }
