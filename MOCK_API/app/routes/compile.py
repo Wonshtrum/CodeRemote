@@ -14,10 +14,8 @@ class File(BaseModel):
 	content:str
 
 class Demande(BaseModel):
-	hash: Optional[str]
-	state: Optional[int]
 	lang: str
-	profile: Profile
+	profile: Optional[Profile]
 	files: List[File]
 
 
