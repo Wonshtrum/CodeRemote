@@ -1,6 +1,7 @@
 const Discord = require('discord.js');
 const client = new Discord.Client();
 const config = require('./config.json');
+const token = require('./token.json');
 const axios = require('axios').default;
 const fs = require('fs');
 
@@ -87,4 +88,4 @@ function getAPI() {
 
 
 
-client.login(config.token);
+client.login(token.token);
