@@ -18,7 +18,7 @@ import * as ace from "ace-builds";
     (change)='onOptionsSelected(mySelect.value)'>
    <option class='option' 
    *ngFor='let option of dropDownData' 
-   [value]="option">{{option}}</option>
+   [value]="data[option] || 'text'">{{option}}</option>
 </select>
   </div>
   </div>
@@ -27,7 +27,7 @@ import * as ace from "ace-builds";
       class="app-ace-editor"
       id="app-ace-editor"
       #editor
-      style="width: 1000px;height: 500px;"
+      style="width: 100%;height: 500px;"
     ></div>
 
 <button class="btn btn-icon btn-3 btn-primary btn-lg pull-right" type="button" (click)="run()">
@@ -45,8 +45,23 @@ import * as ace from "ace-builds";
     `,
   ],
 })
+
+
 export class EditeurComponent implements AfterViewInit {
-  dropDownData = ["python","php","java"];
+
+  data ={
+    "python3":"python",
+    "c++":"c_cpp",
+    "c":"c_cpp",
+    "php":"php",
+    "java":"java"
+  }
+
+    
+  dropDownData= ['python3', 'c++', 'c','php','java','prolog']
+
+
+
 
 
   public run(){
@@ -86,7 +101,7 @@ export class EditeurComponent implements AfterViewInit {
     );
     const aceEditor = ace.edit(this.editor.nativeElement);
     aceEditor.session.setValue("toto=\"Welcome to our compilator\" ");
-    aceEditor.setTheme("ace/theme/twilight");
+    aceEditor.setTheme("ace/theme/dracula");
     aceEditor.session.setMode("ace/mode/python");
     aceEditor.on("change", () => {
       console.log(aceEditor.getValue());
