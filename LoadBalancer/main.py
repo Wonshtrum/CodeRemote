@@ -1,9 +1,7 @@
-from DB import db
+from databases import db
+from nodes import distribute
 
-
-print('start')
 
 for inserted_entry in db.watch('requests'):
 	print(inserted_entry)
-
-print('end')
+	distribute(inserted_entry)
