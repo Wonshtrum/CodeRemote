@@ -1,11 +1,14 @@
-from app import api, db
+from app import api
+from app.services.databases import db
 from typing import Optional,List
 #from fastapi import FastAPI, Response, status
 from pydantic import BaseModel
 from secrets import token_urlsafe
+from app.config import *
+import json
 
 class Profile(BaseModel):
-	token: str
+	token: Optional[str]
 	ram: float
 	cpu: float
 	time: float
@@ -24,11 +27,13 @@ class Demande(BaseModel):
 
 @api.put('/compile')
 async def put_request(dem: Demande):
-	coll = db["requests"]
+	with open(DEFAULT_PROFILE_PATH) as f:
+  		profil = json.load(f)
 	dem.state = 0
+	dem.state=profil
 	id = str(token_urlsafe(32))
 	dem.hash = id
-	coll.insert(dem.dict())
+	db.insert("requests",dem.dict())
 	return {"status": "Compile request added successfully", "hash": id}
 
 
