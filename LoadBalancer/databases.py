@@ -23,7 +23,7 @@ class MongoDB(DB):
 		collection.insert(data)
 	def watch(self, table):
 		collection = self.db[table]
-		with collection.watch([{'match':{'operationType':'insert'}}]) as change_stream:
+		with collection.watch([{'$match':{'operationType':'insert'}}]) as change_stream:
 			for insert_change in change_stream:
 				yield insert_change['fullDocument']
 

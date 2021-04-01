@@ -4,6 +4,8 @@ from threading import Thread
 from time import sleep
 from asyncreq import async_http
 from databases import db
+from config import TIMEOUT
+
 
 Nodes = [
 	'127.0.0.1:8000'
@@ -20,7 +22,7 @@ class State:
 	def __repr__(self):
 		return self.__str__()
 
-TIMEOUT = 2
+
 class Network:
 	def __init__(self, nodes):
 		# (free_containers, max_time_before_free_container)
@@ -35,21 +37,22 @@ class Network:
 		self.polling_thread.start()
 
 	def distribute(self, request):
+		del request['_id']
 		self.requests.put(request)
 	
 	def pick_node(self):
-		nodes = [ (node, state.capacity, state.time) for node, state in self.nodes.items() if state.missing_ping == 0 ]
+		nodes = [ (node, state.capacity, state.time) for node, state in self.nodes.items() if state.missing_ping == 0 and state.capacity > 0 ]
 		if not nodes:
 			return None
-		return max(nodes, key=lambda node: (node[1], -node[2]))[0]
+		return max(nodes, key=lambda node: node[1])[0]
 
 	def send(self, request, node):
 		try:
 			result = http.put(f'http://{node}/work', json=request, timeout=TIMEOUT)
 		except Exception:
 			result = None
-		print(result)
 		if result is None or result.status_code != 202:
+			sleep(TIMEOUT)
 			self.requests.put(request)
 	
 	def process(self):
@@ -59,7 +62,7 @@ class Network:
 				node = self.pick_node()
 				if node is not None:
 					break
-				sleep(2)
+				sleep(TIMEOUT)
 			t = Thread(target=self.send, args=(request, node))
 			t.start()
 	
@@ -75,8 +78,6 @@ class Network:
 			if result is not None and result.status_code == 200:
 				state.missing_ping = 0
 				status = result.json()
-				if verbose:
-					print(status)
 				state.capacity = status['capacity']
 				state.time = status['time']
 				for hash, state in status['work'].items():
