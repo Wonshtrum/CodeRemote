@@ -20,7 +20,7 @@ class State:
 	def __repr__(self):
 		return self.__str__()
 
-TIMEOUT = 1
+TIMEOUT = 2
 class Network:
 	def __init__(self, nodes):
 		# (free_containers, max_time_before_free_container)
@@ -73,6 +73,9 @@ class Network:
 					print(status)
 				state.capacity = status['capacity']
 				state.time = status['time']
+				for hash, state in status['work'].items():
+					if state == 1:
+						self.results.put(hash)
 			else:
 				state.missing_ping += 1
 			sleep(TIMEOUT)
