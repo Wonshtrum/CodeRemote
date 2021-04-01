@@ -44,9 +44,12 @@ class Network:
 		return max(nodes, key=lambda node: (node[1], -node[2]))[0]
 
 	def send(self, request, node):
-		result = http.put(f'http://{node}/work', data=request, timeout=TIMEOUT)
+		try:
+			result = http.put(f'http://{node}/work', json=request, timeout=TIMEOUT)
+		except Exception:
+			result = None
 		print(result)
-		if result.status_code != 202:
+		if result is None or result.status_code != 202:
 			self.requests.put(request)
 	
 	def process(self):
@@ -62,11 +65,14 @@ class Network:
 	
 	def poll_node(self, node, verbose=False):
 		while True:
-			result = http.get(f'http://{node}/load', timeout=TIMEOUT)
+			try:
+				result = http.get(f'http://{node}/load', timeout=TIMEOUT)
+			except Exception:
+				result = None
 			if verbose:
 				print(self.nodes)
 			state = self.nodes[node]
-			if result.status_code == 200:
+			if result is not None and result.status_code == 200:
 				state.missing_ping = 0
 				status = result.json()
 				if verbose:
@@ -75,7 +81,7 @@ class Network:
 				state.time = status['time']
 				for hash, state in status['work'].items():
 					if state == 1:
-						self.results.put(hash)
+						self.results.put((node, hash))
 			else:
 				state.missing_ping += 1
 			sleep(TIMEOUT)
@@ -92,8 +98,9 @@ class Network:
 			t.start()
 
 		while True:
-			hash = self.results.get()
-			async_http.post(f'http://{node}/result', data={ 'hash': hash }, callback=self.publish)
+			node, hash = self.results.get()
+			data = { 'hash': hash }
+			async_http.post(f'http://{node}/result', json=data, callback=self.publish)
 
 
 network = Network(Nodes)
