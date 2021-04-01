@@ -7,7 +7,7 @@ class Work:
 		self.spec = spec
 
 	def process(self, update):
-		sleep(10)
+		sleep(30)
 		for file in self.spec.files:
 			print(file.name, file.content)
 		return 'end'
