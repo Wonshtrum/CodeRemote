@@ -35,6 +35,11 @@ class Network:
 		self.polling_thread = Thread(target=self.poll, daemon=True)
 		self.process_thread.start()
 		self.polling_thread.start()
+		self.add_long_waiting_requests()
+	
+	def add_long_waiting_requests(self):
+		for request in db.find_all(state=0):
+			self.requests.put(request)
 
 	def distribute(self, request):
 		del request['_id']
@@ -52,8 +57,11 @@ class Network:
 		except Exception:
 			result = None
 		if result is None or result.status_code != 202:
+			db.update_one(hash=request.hash)(state=1)
 			sleep(TIMEOUT)
 			self.requests.put(request)
+		else:
+			self.nodes[node].capacity -= 1
 	
 	def process(self):
 		while True:
@@ -73,6 +81,7 @@ class Network:
 			except Exception:
 				result = None
 			if verbose:
+				print('waiting: {self.requests.qsize()}')
 				print(self.nodes)
 			state = self.nodes[node]
 			if result is not None and result.status_code == 200:
@@ -90,6 +99,7 @@ class Network:
 	def publish(self, result):
 		if result.status_code == 200:
 			db.insert('results', result.json())
+			db.delete_all('requests', hash=result.hash)
 		else:
 			print('COULD NOT RETRIEVE A RESULT')
 
