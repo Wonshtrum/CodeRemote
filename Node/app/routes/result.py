@@ -14,4 +14,4 @@ def get_result(request: Request, response: Response):
 		response.status_code = 404
 		return { 'status': 'No job with this hash' }
 	status, data = result
-	return { 'status': status, 'data': data }
+	return { 'hash': request.hash, 'status': status, 'data': data }
