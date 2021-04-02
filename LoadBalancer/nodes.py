@@ -38,7 +38,7 @@ class Network:
 		self.add_long_waiting_requests()
 	
 	def add_long_waiting_requests(self):
-		for request in db.find_all(state=0):
+		for request in db.find_all('requests', state=0):
 			self.requests.put(request)
 
 	def distribute(self, request):
@@ -57,7 +57,7 @@ class Network:
 		except Exception:
 			result = None
 		if result is None or result.status_code != 202:
-			db.update_one(hash=request.hash)(state=1)
+			db.update_one('requests', hash=request.hash)(state=1)
 			sleep(TIMEOUT)
 			self.requests.put(request)
 		else:
@@ -81,7 +81,7 @@ class Network:
 			except Exception:
 				result = None
 			if verbose:
-				print('waiting: {self.requests.qsize()}')
+				print(f'waiting: {self.requests.qsize()}')
 				print(self.nodes)
 			state = self.nodes[node]
 			if result is not None and result.status_code == 200:

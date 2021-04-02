@@ -5,25 +5,25 @@ class DB:
 	def __init__(self, url, port, user, pwd):
 		raise NotImplementedError
 
-	def insert(table, data):
+	def insert(self, table, data):
 		raise NotImplementedError
 
-	def find_one(table, **kwargs):
+	def find_one(self, table, **kwargs):
 		raise NotImplementedError
-	def find_all(table, **kwargs):
-		raise NotImplementedError
-
-	def delete_one(table, **kwargs):
-		raise NotImplementedError
-	def delete_all(table, **kwargs):
+	def find_all(self, table, **kwargs):
 		raise NotImplementedError
 
-	def update_one(table, **kwargs):
+	def delete_one(self, table, **kwargs):
 		raise NotImplementedError
-	def update_all(table, **kwargs):
+	def delete_all(self, table, **kwargs):
 		raise NotImplementedError
 
-	def watch(table):
+	def update_one(self, table, **kwargs):
+		raise NotImplementedError
+	def update_all(self, table, **kwargs):
+		raise NotImplementedError
+
+	def watch(self, table):
 		raise NotImplementedError
 
 
@@ -37,17 +37,17 @@ class MongoDB(DB):
 		collection = self.db[table]
 		collection.insert(data)
 
-	def find_one(table, **kwargs):
+	def find_one(self, table, **kwargs):
 		collection = self.db[table]
 		return collection.find_one(kwargs, {'_id':0})
-	def find_all(table, **kwargs):
+	def find_all(self, table, **kwargs):
 		collection = self.db[table]
 		return collection.find(kwargs, {'_id':0})
 
-	def delete_one(table, **kwargs):
+	def delete_one(self, table, **kwargs):
 		collection = self.db[table]
 		collection.delete_one(kwargs)
-	def delete_all(table, **kwargs):
+	def delete_all(self, table, **kwargs):
 		collection = self.db[table]
 		collection.delete_many(kwargs)
 
@@ -55,9 +55,9 @@ class MongoDB(DB):
 		def wrapper(**kwargs_update):
 			method(kwargs_query, {'$set':kwargs_update})
 		return wrapper
-	def update_one(table, **kwargs):
+	def update_one(self, table, **kwargs):
 		return self.update(self.db[table].update_one, kwargs)
-	def update_all(table, **kwargs):
+	def update_all(self, table, **kwargs):
 		return self.update(self.db[table].update_many, kwargs)
 
 	def watch(self, table):
@@ -84,7 +84,7 @@ class RedisDB(DB):
 		self.client.delete(f'{table}.{hash}')
 
 	def watch(self, table):
-		self.pubsub.subscribe(table)
+		self.pubsub.subscribe(self, table)
 		while True:
 			yield self.pubsub.get_message()['data']
 
