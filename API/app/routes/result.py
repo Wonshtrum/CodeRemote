@@ -20,6 +20,7 @@ async def post_result(data: Data,response: Response):
             return {"status":"Request with this hash not found"}
         for e in db.watch('results'):
             if e["hash"] == h:
+                del e["_id"]
                 res=e
                 break
     return {"status": "Result successfully returned", "data":res}
