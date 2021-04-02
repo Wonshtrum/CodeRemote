@@ -15,4 +15,4 @@ def get_result(request: Request, response: Response):
 		return { 'status': 'No job with this hash' }
 	status, ( stdout, stderr ) = result
 	logs = { 'status': 0, 'message': 'this is just random garbage', 'compilation_time': 0, 'execution_time': 0 }
-	return { 'hash': request.hash, 'stdout': stdout, 'stderr': stderr, 'logs': logs, 'data': data }
+	return { 'hash': request.hash, 'stdout': stdout, 'stderr': stderr, 'logs': logs }
