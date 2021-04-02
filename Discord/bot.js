@@ -8,7 +8,7 @@ const fs = require('fs');
 
 let prefix = config.prefix;
 let status = ["SUCCESS", "COMPILATION_FAILED", "CRASHED", "LIMIT_REACHED"]
-
+let languages;
 
 
 //Log in pour le bot
@@ -17,8 +17,13 @@ client.on('ready', () => {
 });
 
 client.on('ready', () => {
-
     client.user.setActivity(`${prefix}help`,{type:"PLAYING"});
+
+    axios.get(`http://127.0.0.1:4382/languages`)
+    .then(response => {
+        languages = response.data.data;
+    })
+    .catch(error => console.log(error));
 });
 
 let serverRequestTemplate = {
@@ -55,6 +60,7 @@ client.on('message', message =>{
             let language = message.content.split('\n');
             let cleanlanguage = language.shift().slice(8).split(' ')[0];
 
+
             //Bloc pour récupérer un string du code
             let code = message.content.split('\n');
             code.shift();
@@ -72,28 +78,44 @@ client.on('message', message =>{
                     "content" : cleancode
                 }]
             }
-            axios.put(`http://127.0.0.1:4382/compile`,request)
-            .then(response =>{ 
 
-                message.channel.send("Response API : "+ `${response.data.data.hash} \n`)
+            if (languages.includes(cleanlanguage)) {
+                
+                axios.put(`http://127.0.0.1:4382/compile`,request)
+                .then(response =>{ 
+    
+                    message.channel.send("Response API : "+ `${response.data.data.hash} \n`)
+    
+                    let hash = {hash : response.data.data.hash}; 
+    
+                        axios.post(`http://127.0.0.1:4382/result`,hash)
+                        .then(response => {
+                            message.channel.send("Status : " + `${status[response.data.data.logs.status]} \n`);
+                            message.channel.send("Message : " + `${response.data.data.logs.message} \n`);
+    
+                            if (response.data.data.stdout) {
+                                let attachmentOut = new Discord.MessageAttachment(Buffer.from(response.data.data.stdout, 'utf-8'), 'stdout.txt');
+                                message.channel.send('stdout:', attachmentOut);
+                            }else{
+                                message.channel.send('stdout est vide')
+                            }
+                            if (response.data.data.stderr.trim()) {
+                                let attachmentErr = new Discord.MessageAttachment(Buffer.from(response.data.data.stderr, 'utf-8'), 'stderr.txt');
+                                message.channel.send('stderr:', attachmentErr);
+                            }else{
+                                message.channel.send('stderr est vide')
+                            }
 
-                let hash = {hash : response.data.data.hash}; 
+                        })
+                        .catch(error => console.log(error));
+                })
+                .catch(error => console.log(error));
+    
+            }
+            else{
+                message.channel.send("Le language que vous avez entré n'est pas reconnu");
+            }
 
-                    axios.post(`http://127.0.0.1:4382/result`,hash)
-                    .then(response => {
-                        message.channel.send("Status : " + `${status[response.data.data.logs.status]} \n`);
-                        message.channel.send("Message : " + `${response.data.data.logs.message} \n`);
-
-                        message.channel.send("```"+ `${response.data.data.stdout.slice(0,1900)} \n`+ "```");
-                        message.channel.send("```"+ `${response.data.data.stderr.slice(0,1900)} \n`+ "```");
-                    })
-                    .catch(error => console.log(error));
-            })
-            .catch(error => console.log(error));
-
-            
-
-            
         }
 
 
