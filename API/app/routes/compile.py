@@ -17,7 +17,7 @@ class File(BaseModel):
 	name: str
 	content:str
 
-class Demande(BaseModel):
+class Request(BaseModel):
 	hash: Optional[str]
 	state: Optional[int]
 	lang: str
@@ -26,14 +26,15 @@ class Demande(BaseModel):
 
 
 @api.put('/compile')
-async def put_request(dem: Demande):
+async def put_request(req: Request):
+	req=req.dict()
 	with open(DEFAULT_PROFILE_PATH) as f:
-  		profil = json.load(f)
-	dem.state = 0
-	dem.state=profil
+  		profile = json.load(f)
 	id = str(token_urlsafe(32))
-	dem.hash = id
-	db.insert("requests",dem.dict())
+	req["state"] = 0
+	req["profile"]=profile	
+	req["hash"] = id
+	db.insert("requests",req)
 	return {"status": "Compile request added successfully", "hash": id}
 
 
