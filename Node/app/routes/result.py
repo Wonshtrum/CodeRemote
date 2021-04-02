@@ -13,5 +13,6 @@ def get_result(request: Request, response: Response):
 	if result[0] is None:
 		response.status_code = 404
 		return { 'status': 'No job with this hash' }
-	status, data = result
-	return { 'hash': request.hash, 'status': status, 'data': data }
+	status, ( stdout, stderr ) = result
+	logs = { 'status': 0, 'message': 'this is just random garbage', 'compilation_time': 0, 'execution_time': 0 }
+	return { 'hash': request.hash, 'stdout': stdout, 'stderr': stderr, 'logs': logs, 'data': data }

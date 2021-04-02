@@ -5,7 +5,6 @@ from pydantic import BaseModel
 
 
 class Profile(BaseModel):
-	token: str
 	ram: float
 	cpu: float
 	time: float
