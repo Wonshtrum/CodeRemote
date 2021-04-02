@@ -21,7 +21,7 @@ class Request(BaseModel):
 	hash: Optional[str]
 	state: Optional[int]
 	lang: str
-	profile: Profile
+	profile: Optional[Profile]
 	files: List[File]
 
 
@@ -35,6 +35,6 @@ async def put_request(req: Request):
 	req["profile"]=profile	
 	req["hash"] = id
 	db.insert("requests",req)
-	return {"status": "Compile request added successfully", "hash": id}
+	return {"status": "Compile request added successfully", "data":{"hash": id}}
 
 
