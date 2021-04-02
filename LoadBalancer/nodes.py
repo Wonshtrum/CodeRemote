@@ -61,9 +61,11 @@ class Network:
 			elif result.status_code == 422:
 				print('DESTROYING', request['hash'])
 				db.delete_all('requests', hash=request['hash'])
+			else:
+				result = None
 		except Exception:
 			result = None
-		finally:
+		if result is None:
 			sleep(TIMEOUT)
 			self.requests.put(request)
 	
