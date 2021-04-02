@@ -1,11 +1,8 @@
 from app import api
 from app.services.databases import db
-from typing import Optional,List
 from fastapi import Response, status
 from pydantic import BaseModel
-from secrets import token_urlsafe
 from app.config import *
-import json
 
 class Data(BaseModel):
 	hash: str
