@@ -52,16 +52,15 @@ class Network:
 		return max(nodes, key=lambda node: node[1])[0]
 
 	def send(self, request, node):
+		self.nodes[node].capacity -= 1
 		try:
 			result = http.put(f'http://{node}/work', json=request, timeout=TIMEOUT)
 		except Exception:
 			result = None
 		if result is None or result.status_code != 202:
-			db.update_one('requests', hash=request.hash)(state=1)
+			db.update_one('requests', hash=request['hash'])(state=1)
 			sleep(TIMEOUT)
 			self.requests.put(request)
-		else:
-			self.nodes[node].capacity -= 1
 	
 	def process(self):
 		while True:
@@ -98,8 +97,9 @@ class Network:
 	
 	def publish(self, result):
 		if result.status_code == 200:
-			db.insert('results', result.json())
-			db.delete_all('requests', hash=result.hash)
+			data = result.json()
+			db.insert('results', data)
+			db.delete_all('requests', hash=data['hash'])
 		else:
 			print('COULD NOT RETRIEVE A RESULT')
 

@@ -51,7 +51,7 @@ class MongoDB(DB):
 		collection = self.db[table]
 		collection.delete_many(kwargs)
 
-	def update(method, table, kwargs_query):
+	def update(self, method, kwargs_query):
 		def wrapper(**kwargs_update):
 			method(kwargs_query, {'$set':kwargs_update})
 		return wrapper
