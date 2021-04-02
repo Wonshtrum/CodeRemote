@@ -39,6 +39,7 @@ class Network:
 	
 	def add_long_waiting_requests(self):
 		for request in db.find_all('requests', state=0):
+			print('Getting back:', request['hash'])
 			self.requests.put(request)
 
 	def distribute(self, request):
@@ -55,10 +56,14 @@ class Network:
 		self.nodes[node].capacity -= 1
 		try:
 			result = http.put(f'http://{node}/work', json=request, timeout=TIMEOUT)
+			if result.status_code == 202:
+				db.update_one('requests', hash=request['hash'])(state=1)
+			elif result.status_code == 422:
+				print('DESTROYING', request['hash'])
+				db.delete_all('requests', hash=request['hash'])
 		except Exception:
 			result = None
-		if result is None or result.status_code != 202:
-			db.update_one('requests', hash=request['hash'])(state=1)
+		finally:
 			sleep(TIMEOUT)
 			self.requests.put(request)
 	
