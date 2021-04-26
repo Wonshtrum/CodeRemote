@@ -53,26 +53,37 @@ def run(request):
 		return False
 	profile = request['profile']
 	container = create_container(request['hash'], context.image, profile)
+	print("created")
+	container.start()
+	print("started")
 
 	try:
 		for file in request['files']:
-			container.write_file(BASE_PATH+file['name'], file['content'])
-	
+			container.files.put(BASE_PATH+file['name'], file['content'])
+		print("files written")
 		exit_code, stdout, stderr = execute(container, f'ls -al {BASE_PATH}')
+		print(exit_code)
+		print(stdout)
+		print(stderr)
 
 		time_compile = 5
 		for command in context.compile():
 			res = timeout(execute, time_compile)(container, command)
 			print('compilation:', res)
+		print("compiled")
 		time_run = 5
 		run_cmd = context.run()
-		res = timeout(execute, time_compile+SLACK)(container, f'timeout {time_run} {run_cmd}')
-		print('execution:', res)
+		exit_code, stdout, stderr = timeout(execute, time_compile+SLACK)(container, f'timeout {time_run} {run_cmd}')
+		print(exit_code)
+		print(stdout)
+		print(stderr)
 	except Exception as error:
 		print('Error:', error)
 
 
+	print("finished")
 	destroy(container)
+	print("destroyed")
 
 	return exit_code, stdout, stderr
 
