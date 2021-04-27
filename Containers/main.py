@@ -1,8 +1,35 @@
 import pylxd
-from time import sleep
+from time import time
 from mock import Mock
 from contextManager import *
 from timeout import timeout
+
+
+class Status:
+	SUCCESS = 0
+	COMPILATION_FAILED = 1
+	CRASHED = 2
+	LIMIT_REACHED = 3
+	GENERIC_ERROR = 4
+
+class ErrorWithStatus(Exception):
+	def __init__(self, status, msg=None, out=None, err=None):
+		super().__init__()
+		self.status = status
+		self.msg = msg
+		self.out = out
+		self.err = err
+
+class Timer:
+	def __init__(self):
+		self.time = None
+		self.steps = []
+	def start(self):
+		self.time = time()
+	def end(self):
+		tmp = time()
+		self.steps.append(tmp-self.time)
+		self.time = tmp
 
 
 try:
@@ -46,18 +73,18 @@ contexts = {
 
 
 BASE_PATH = '/root/'
-SLACK = 2
-def run(request):
-	context = contexts.get(request['lang'])
-	print(context)
-	context = context(request['files'])
-	if context is None:
-		return False
-	profile = request['profile']
-	container = create_container(request['hash'], context.image, profile)
-	print("started")
-
+def run(request, timer):
+	timer.start()
+	state = "initializing"
+	container = None
 	try:
+		context = contexts[request['lang']]
+		print(context)
+		context = context(request['files'])
+		profile = request['profile']
+		container = create_container(request['hash'], context.image, profile)
+		print("started")
+
 		for file in request['files']:
 			container.files.put(BASE_PATH+file['name'], file['content'])
 		print("files written")
@@ -65,29 +92,63 @@ def run(request):
 		print(exit_code)
 		print(stdout)
 		print(stderr)
+		timer.end()
 
+		state = "compilating"
 		time_compile = 5
 		for command in context.compile():
-			res = timeout(execute, time_compile)(container, command)
-			print('compilation:', res)
+			exit_code, stdout, stderr = timeout(execute, time_compile)(container, command)
+			print(exit_code)
+			print(stdout)
+			print(stderr)
+			if exit_code != 0:
+				raise ErrorWithStatus(Status.COMPILATION_FAILED, f"Compilation failed with code {exit_code}", stdout, stderr)
+		timer.end()
 		print("compiled")
+
+		state = "executing"
 		time_run = 5
 		run_cmd = context.run()
-		exit_code, stdout, stderr = timeout(execute, time_compile+SLACK)(container, f'timeout -s SIGKILL {time_run} {run_cmd}')
+		exit_code, stdout, stderr = timeout(execute, time_compile)(container, run_cmd)
 		print(exit_code)
 		print(stdout)
 		print(stderr)
+		if exit_code != 0:
+			raise ErrorWithStatus(Status.CRASHED, f"Execution failed with code {exit_code}", stdout, stderr)
+		timer.end()
+		return ErrorWithStatus(Status.SUCCESS)
+
+	except ErrorWithStatus as error:
+		return error
+	except TimeoutError as error:
+		return ErrorWithStatus(Status.LIMIT_REACHED, f"Timeout reached while {state}")
 	except Exception as error:
-		print('Error:', error)
-
-
-	print("finished")
-	destroy(container)
-	print("destroyed")
-
-	return None
+		print("Error:", type(error), error)
+		return ErrorWithStatus(Status.GENERIC_ERROR, "The system couldn't initialize an execution environment for your request. If you think the error is not in your code, please retry submitting it.")
+	finally:
+		timer.end()
+		print("finished")
+		if container is not None:
+			destroy(container)
+			print("destroyed")
 
 
 if __name__ == '__main__':
 	request = eval(input())
-	run(request)
+	timer = Timer()
+	result = run(request, timer)
+	timer.steps.extend([0,0,0])
+	init_time, compilation_time, execution_time, *_ = timer.steps
+	logs = {
+		'status':result.status,
+		'message':result.msg,
+		'init_time':init_time,
+		'compilation_time':compilation_time,
+		'execution_time':execution_time
+	}
+	final = {
+		'stdout':result.out,
+		'stderr':result.err,
+		'logs':logs
+	}
+	print(repr(final))
