@@ -1,4 +1,6 @@
+from app import config
 from time import sleep
+import subprocess as sp
 
 
 MAX_TIME = 20
@@ -7,10 +9,12 @@ class Work:
 		self.spec = spec
 
 	def process(self, update):
-		sleep(30)
-		for file in self.spec.files:
-			print(file.name, file.content)
-		return ('this is a random stdout', 'this is a random stderr')
+		proc = sp.Popen(f"exec python3 {config.EXEC_PATH}", stdin=sp.PIPE, stdout=sp.PIPE, stderr=sp.PIPE, encoding = 'utf8')
+		stdout, stderr = proc.communicate(repr(self.spec))
+		exit = proc.poll()
+		if exit is None:
+			proc.kill()
+		return (stdout, stderr)
 	
 	def __hash__(self):
 		return hash(self.spec.hash)
