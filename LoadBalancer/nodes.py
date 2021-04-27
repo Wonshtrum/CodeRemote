@@ -106,7 +106,8 @@ class Network:
 		if result.status_code == 200:
 			data = result.json()
 			db.insert('results', data)
-			db.delete_all('requests', hash=data['hash'])
+			#db.delete_all('requests', hash=data['hash'])
+			db.update_one('requests', hash=data['hash'])(state=2)
 		else:
 			print('COULD NOT RETRIEVE A RESULT')
 
