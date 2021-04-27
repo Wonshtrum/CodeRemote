@@ -14,7 +14,24 @@ class Work:
 		exit = proc.poll()
 		if exit is None:
 			proc.kill()
-		return (stdout, stderr)
+		try:
+			if exit == 0:
+				return eval(stdout)
+			raise Exception
+		except Exception:
+			logs = {
+				'status':4,
+				'message':'The manager resjected your request for an unknown reason.'
+				'init_time':0,
+				'compilation_time':0,
+				'execution_time':0
+			}
+			result = {
+				'stdout':None,
+				'stderr':None,
+				'logs':logs
+			}
+			return result
 	
 	def __hash__(self):
 		return hash(self.spec.hash)
