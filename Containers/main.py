@@ -19,7 +19,9 @@ def create_container(name, image, profile):
 	#limits.memory 100MB
 	#limits.processes
 	config = {'name': name, 'source': {'type': 'image', 'alias': image}, 'config': {'limits.cpu': str(profile['cpu'])}}
-	return client.containers.create(config, wait=True)
+	container = client.containers.create(config, wait=True)
+	container.start(wait=True)
+	return container
 
 def write_file(container, name, content):
 	container.files.put(name, content)
@@ -32,7 +34,7 @@ def execute(container, command):
 	return result.exit_code, result.stdout, result.stderr
 
 def destroy(container):
-	container.stop()
+	container.stop(wait=True)
 	container.delete()
 
 
@@ -53,8 +55,6 @@ def run(request):
 		return False
 	profile = request['profile']
 	container = create_container(request['hash'], context.image, profile)
-	print("created")
-	container.start()
 	print("started")
 
 	try:
@@ -73,7 +73,7 @@ def run(request):
 		print("compiled")
 		time_run = 5
 		run_cmd = context.run()
-		exit_code, stdout, stderr = timeout(execute, time_compile+SLACK)(container, f'timeout {time_run} {run_cmd}')
+		exit_code, stdout, stderr = timeout(execute, time_compile+SLACK)(container, f'timeout -s SIGKILL {time_run} {run_cmd}')
 		print(exit_code)
 		print(stdout)
 		print(stderr)
@@ -85,7 +85,7 @@ def run(request):
 	destroy(container)
 	print("destroyed")
 
-	return exit_code, stdout, stderr
+	return None
 
 
 if __name__ == '__main__':
