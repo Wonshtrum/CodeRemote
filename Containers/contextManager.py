@@ -26,7 +26,7 @@ class ContextPython(Context):
 class ContextCPP(Context):
 	image = "cppAlpine"
 	def init(self):
-		self.src = [prog for prog in self.progs if endswith('.cpp')]
+		self.src = [prog for prog in self.progs if prog.endswith('.cpp')]
 		self.compiled = "compiled"
 	def compile(self):
 		yield "g++ " + ' '.join(self.src) + f" -o {self.compiled}"
@@ -34,9 +34,9 @@ class ContextCPP(Context):
 		return f"./{self.compiled}"
 
 def ContextC(Context):
-	image = "cAlpine"
+	image = "cppAlpine"
 	def init(self):
-		self.src = [prog for prog in self.progs if endswith('.c')]
+		self.src = [prog for prog in self.progs if prog.endswith('.c')]
 		self.compiled = "compiled"
 	def compile(self):
 		yield "gcc " + ' '.join(self.src) + f" -o {self.compiled}"

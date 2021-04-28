@@ -14,7 +14,6 @@ def timeout(target, time):
 		if p.is_alive():
 			p.terminate()
 			p.join(SLACK)
-			print('alive:', p.is_alive())
 			raise TimeoutError
 
 		return queue.get(timeout=SLACK)

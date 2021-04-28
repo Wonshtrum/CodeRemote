@@ -1,0 +1,1 @@
+mage copy images:alpine/3.10 local: --alias alpine
