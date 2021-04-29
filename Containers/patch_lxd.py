@@ -1,5 +1,7 @@
-import pylxd
 from mock import Mock
+import pylxd
+from pylxd.models.instance import *
+from pylxd.models.instance import _StdinWebsocket, _CommandWebsocketClient, _InstanceExecuteResult
 
 
 try:
@@ -135,3 +137,4 @@ def execute(
 				operation.metadata["return"], stdout.data, stderr.data
 			)
 
+Instance.execute = execute

@@ -33,7 +33,7 @@ class ContextCPP(Context):
 	def run(self):
 		return f"./{self.compiled}"
 
-def ContextC(Context):
+class ContextC(Context):
 	image = "cppAlpine"
 	def init(self):
 		self.src = [prog for prog in self.progs if prog.endswith('.c')]
