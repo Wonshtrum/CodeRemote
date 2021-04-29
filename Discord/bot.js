@@ -7,23 +7,35 @@ const fs = require('fs');
 
 
 let prefix = config.prefix;
-let status = ["SUCCESS", "COMPILATION_FAILED", "CRASHED", "LIMIT_REACHED"]
+let status = ["SUCCESS", "COMPILATION_FAILED", "CRASHED", "LIMIT_REACHED","GENERIC_ERROR"]
 let languages;
+
+const lang_discord_to_api = {
+    'py': 'python3',
+    'python': 'python3',
+    'cpp': 'c++',
+  }
+  const lang_to_ext = {
+    'python3': '.py',
+    'c++': '.cpp',
+    'c': '.c',
+    'java': '.java',
+  }
 
 
 //Log in pour le bot
-client.on('ready', () => {
-  console.log(`Logged in as ${client.user.tag}!`);
-});
-
 client.on('ready', () => {
     client.user.setActivity(`${prefix}help`,{type:"PLAYING"});
 
     axios.get(`http://127.0.0.1:4382/languages`)
     .then(response => {
         languages = response.data.data;
+        console.log('Les langages sont présents');
     })
     .catch(error => console.log(error));
+
+    console.log(`Logged in as ${client.user.tag}!`);
+
 });
 
 let serverRequestTemplate = {
@@ -56,27 +68,28 @@ client.on('message', message =>{
 
         if (command.startsWith('run')){
 
-            //Bloc pour récupérer le language
-            let language = message.content.split('\n');
-            let cleanlanguage = language.shift().slice(8).split(' ')[0];
+            let blocks = message.content.split('```', 3);
 
+            if (blocks.length != 3) {
+                message.channel.send('Manque un bout la');
+                return;
+            }
 
-            //Bloc pour récupérer un string du code
-            let code = message.content.split('\n');
-            code.shift();
-            code.pop();
-            let code2 = code.join('\n');
-            let cleancode = Discord.Util.escapeCodeBlock(code2);
+            let block = blocks[1];
+            let firstNL = block.indexOf('\n');
 
-            //sendtoserver(cleanlanguage,cleancode);
-            //Construction de l'objet à envoyer a l'API
-            let request = Object.create(serverRequestTemplate);
-            request = {
-                "lang" : cleanlanguage,
-                "files" : [{
-                    "name" : "Discord Request",
-                    "content" : cleancode
-                }]
+            let language = block.substring(0, firstNL).toLowerCase();
+            let cleanlanguage = lang_discord_to_api[language] || language;
+            let code = block.substring(firstNL+1);
+            let cleancode = Discord.Util.escapeCodeBlock(code);
+
+            let ext = lang_to_ext[cleanlanguage] || ".txt";
+                request = {
+                    "lang" : cleanlanguage,
+                    "files" : [{
+                        "name" : "DiscordRequest"+ext,
+                        "content" : cleancode
+                    }]
             }
 
             if (languages.includes(cleanlanguage)) {
@@ -91,8 +104,13 @@ client.on('message', message =>{
                         axios.post(`http://127.0.0.1:4382/result`,hash)
                         .then(response => {
                             message.channel.send("Status : " + `${status[response.data.data.logs.status]} \n`);
-                            message.channel.send("Message : " + `${response.data.data.logs.message} \n`);
-    
+                            if (response.data.data.logs.message) {
+                                message.channel.send("Message : " + `${response.data.data.logs.message} \n`);
+                            }
+                            if (response.data.data.logs) {
+                                let logs = JSON.stringify(response.data.data.logs);
+                                message.channel.send("Logs : " + `${logs} \n`);
+                            }
                             if (response.data.data.stdout) {
                                 let attachmentOut = new Discord.MessageAttachment(Buffer.from(response.data.data.stdout, 'utf-8'), 'stdout.txt');
                                 message.channel.send('stdout:', attachmentOut);
@@ -105,7 +123,7 @@ client.on('message', message =>{
                             }else{
                                 message.channel.send('stderr est vide')
                             }
-
+                            console.log(response.data.data);
                         })
                         .catch(error => console.log(error));
                 })
@@ -113,7 +131,7 @@ client.on('message', message =>{
     
             }
             else{
-                message.channel.send("Le language que vous avez entré n'est pas reconnu");
+                message.channel.send(`Le language : ${cleanlanguage} que vous avez entré n'est pas reconnu`);
             }
 
         }
@@ -140,7 +158,10 @@ client.on('message', message =>{
 
             case "languages":
                 axios.get(`http://127.0.0.1:4382/languages`)
-                .then(response => message.channel.send("Voici une liste des languages disponibles : "+ `${response.data.data} \n`))
+                .then(response =>{
+                    languages = response.data.data; 
+                    message.channel.send("Voici une liste des languages disponibles : "+ `${response.data.data} \n`);
+                })
                 .catch(error => console.log(error));
 
                 break;
