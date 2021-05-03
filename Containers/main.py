@@ -58,7 +58,7 @@ def create_container(name, image, profile):
 		'config': {
 			'limits.cpu': '1',
 			'limits.cpu.allowance': f'{int(profile["cpu"]*100)}ms/100ms',
-			'limits.memory': f'{profile["ram"]}MB',
+			'limits.memory': f'{int(profile["ram"])}MB',
 			'limits.memory.swap': 'false',
 			'limits.processes': '100'
 		}
@@ -96,7 +96,7 @@ contexts = {
 }
 
 
-BASE_PATH = '/home/nobody'
+BASE_PATH = '/home/nobody/'
 def run(request, timer):
 	timer.start()
 	state = "initializing"
