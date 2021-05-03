@@ -8,3 +8,4 @@ DB_PWD = "password"
 MONGO_DATABASE = "code_remote"
 
 TIMEOUT = 2
+MAX_PING_MISSED = 2

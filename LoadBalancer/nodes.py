@@ -4,7 +4,7 @@ from threading import Thread
 from time import sleep
 from asyncreq import async_http
 from databases import db
-from config import TIMEOUT
+from config import TIMEOUT, MAX_PING_MISSED
 
 
 Nodes = [
@@ -17,6 +17,7 @@ class State:
 		self.capacity = 0
 		self.time = 0
 		self.missing_ping = 1
+		self.work = {}
 	def __str__(self):
 		return f'({self.capacity}, {self.time}, {self.missing_ping})'
 	def __repr__(self):
@@ -29,6 +30,7 @@ class Network:
 		self.nodes = { node:State() for node in nodes }
 		self.requests = Queue()
 		self.results = Queue()
+		self.cache = set()
 	
 	def start(self):
 		self.process_thread = Thread(target=self.process, daemon=True)
@@ -40,11 +42,17 @@ class Network:
 	def add_long_waiting_requests(self):
 		for request in db.find_all('requests', state=0):
 			print('Getting back:', request['hash'])
-			self.requests.put(request)
+			self.distribute(request)
 
 	def distribute(self, request):
-		del request['_id']
-		self.requests.put(request)
+		if '_id' in request:
+			del request['_id']
+		if request.hash not in self.cache:
+			self.cache.add(cache)
+			self.requests.put(request)
+			return True
+		print('{hash} ALREADY WAITING')
+		return False
 	
 	def pick_node(self):
 		nodes = [ (node, state.capacity, state.time) for node, state in self.nodes.items() if state.missing_ping == 0 and state.capacity > 0 ]
@@ -53,6 +61,10 @@ class Network:
 		return max(nodes, key=lambda node: node[1])[0]
 
 	def send(self, request, node):
+		try:
+			self.cache.remove(request.hash)
+		except KeyError:
+			pass
 		self.nodes[node].capacity -= 1
 		try:
 			result = http.put(f'http://{node}/work', json=request, timeout=TIMEOUT)
@@ -67,7 +79,7 @@ class Network:
 			result = None
 		if result is None:
 			sleep(TIMEOUT)
-			self.requests.put(request)
+			self.distribute(request)
 	
 	def process(self):
 		while True:
@@ -95,11 +107,26 @@ class Network:
 				status = result.json()
 				state.capacity = status['capacity']
 				state.time = status['time']
+				state.work = status['work']
 				for hash, state in status['work'].items():
 					if state == 1:
 						self.results.put((node, hash))
 			else:
 				state.missing_ping += 1
+				if state.missing_ping == MAX_PING_MISSED:
+					print('{node} DEAD')
+					for hash in state.work:
+						print(f'EVALUATING {hash}')
+						if hash in self.cahche:
+							continue
+						if any(hash in node.work for node in self.nodes if node.missing_ping < MAX_PING_MISSED):
+							continue
+						requests = db.find_all('requests', hash=hash)
+						if any(request.state == 2 for request in requests):
+							continue
+						print(f'REDISTRIBUTING {hash}')
+						self.distribute(requests[0])
+
 			sleep(TIMEOUT)
 	
 	def publish(self, result):
