@@ -27,7 +27,7 @@ class Work:
 			print(exit, error)
 			logs = {
 				'status':4,
-				'message':'The manager rejected your request for an unknown reason.'
+				'message':'The manager rejected your request for an unknown reason.',
 				'init_time':0,
 				'compilation_time':0,
 				'execution_time':0
@@ -38,7 +38,7 @@ class Work:
 				'logs':logs
 			}
 		finally:
-			#result['logs'].update(self.spec.dict())
+			result['logs'].update(self.spec.dict())
 			return result
 	
 	def __hash__(self):

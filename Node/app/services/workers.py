@@ -31,7 +31,7 @@ class Worker(Thread):
 			return False
 		self.working = True
 		self.work = work
-		self.max_time = work.spec.time
+		self.max_time = work.spec.profile.time
 		Thread.__init__(self)
 		self.start()
 		return True

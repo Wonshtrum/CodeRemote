@@ -1,6 +1,10 @@
 from app import api, config
 import uvicorn
+from sys import argv
 
 
 if __name__ == '__main__':
-	uvicorn.run(api, host='0.0.0.0', port=8000)
+	port = config.PORT
+	if len(argv) > 1:
+		port = int(argv[1])
+	uvicorn.run(api, host=config.HOST, port=port)
