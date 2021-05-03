@@ -8,7 +8,8 @@ from config import TIMEOUT, MAX_PING_MISSED
 
 
 Nodes = [
-	'127.0.0.1:8000'
+	'127.0.0.1:8000',
+	'127.0.0.1:8001'
 ]
 
 
@@ -47,11 +48,11 @@ class Network:
 	def distribute(self, request):
 		if '_id' in request:
 			del request['_id']
-		if request.hash not in self.cache:
-			self.cache.add(cache)
+		if request['hash'] not in self.cache:
+			self.cache.add(request['hash'])
 			self.requests.put(request)
 			return True
-		print('{hash} ALREADY WAITING')
+		print(f'{hash} ALREADY WAITING')
 		return False
 	
 	def pick_node(self):
@@ -62,7 +63,7 @@ class Network:
 
 	def send(self, request, node):
 		try:
-			self.cache.remove(request.hash)
+			self.cache.remove(request['hash'])
 		except KeyError:
 			pass
 		self.nodes[node].capacity -= 1
@@ -99,7 +100,7 @@ class Network:
 			except Exception:
 				result = None
 			if verbose:
-				print(f'waiting: {self.requests.qsize()}')
+				print(f'waiting: {self.requests.qsize()} {self.cache}')
 				print(self.nodes)
 			state = self.nodes[node]
 			if result is not None and result.status_code == 200:
@@ -114,15 +115,15 @@ class Network:
 			else:
 				state.missing_ping += 1
 				if state.missing_ping == MAX_PING_MISSED:
-					print('{node} DEAD')
+					print(f'{node} DEAD')
 					for hash in state.work:
 						print(f'EVALUATING {hash}')
-						if hash in self.cahche:
+						if hash in self.cache:
 							continue
 						if any(hash in node.work for node in self.nodes if node.missing_ping < MAX_PING_MISSED):
 							continue
 						requests = db.find_all('requests', hash=hash)
-						if any(request.state == 2 for request in requests):
+						if any(request['state'] == 2 for request in requests):
 							continue
 						print(f'REDISTRIBUTING {hash}')
 						self.distribute(requests[0])
