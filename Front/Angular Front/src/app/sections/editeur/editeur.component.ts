@@ -2,6 +2,9 @@
 import { AfterViewInit, Component, ElementRef, Input, ViewChild } from "@angular/core";
 import {HttpClient} from '@angular/common/http';
 import * as ace from "ace-builds";
+import { NgbAlert } from "@ng-bootstrap/ng-bootstrap";
+import {Subject} from 'rxjs';
+import {debounceTime} from 'rxjs/operators';
 export interface IAlert {
   id: number;
   type: string;
@@ -18,8 +21,14 @@ export interface IAlert {
   <div class="container mb-5">
   <div class="col-lg-2 col-sm-2">
   <div class="form-group">
-    <input type="text" id="name" placeholder="Nom" class="form-control" />
+    <input type="text" id="nameFile" placeholder="Nom du fichier" class="form-control" />
+    <button type="button" class="btn btn-primary" (click)="newFile()">+</button>
+    <button type="button" class="btn btn-primary" >-</button>
   </div>
+  <p>
+<ngb-alert #selfClosingAlert *ngIf="successMessage" type="success" (closed)="successMessage = ''">{{ successMessage }}
+</ngb-alert>
+</p>
   <div class="form-group">
   <select class='select-option' 
     id ="selectLangage"
@@ -31,24 +40,19 @@ export interface IAlert {
 </select>
   </div>
   </div>
-  <div class="d-flex justify-content-between  ">
+  <div style="display:flex;">
 
-    <div>
-    <ul>
-    <li>Milk</li>
-    <li>Cheese
-        <ul>
-            <li>Blue cheese</li>
-            <li>Feta</li>
-        </ul>
-    </li>
-</ul>
+    <div  class="overflow-scroll" style=" color:white ;max-height : 500px;max-width : 20vh;overflow: auto;">
+    <ul id="listFileName" style="list-style-type:none;padding:0;" >
+      <li  *ngFor="let item of obj.files"><button id="{{ item.name }}" class="btn btn-link" (click)="showFile(item.name)">{{ item.name }} </button></li>
+
+    </ul>
     </div>
     <div
       class="app-ace-editor"
       id="app-ace-editor"
       #editor
-      style="width: 100%;height: 500px;"
+      style="width: 80%;height: 500px;"
     ></div>
   </div>
 <button class="btn btn-icon btn-3 btn-primary btn-lg pull-right" type="button" (click)="run()">
@@ -100,7 +104,51 @@ export interface IAlert {
 
 
 export class EditeurComponent implements AfterViewInit {
+  public onOptionsSelected(event) {
+    console.log(event);
+    const aceEditor = ace.edit(this.editor.nativeElement);
+    aceEditor.session.setMode("ace/mode/"+event);
+  }
+  @ViewChild("editor") private editor: ElementRef<HTMLElement>;
 
+
+  ngOnInit(){
+
+    
+    this.http.get('http://127.0.0.1:4382/languages')
+    .subscribe(response  => {
+  
+      // If response comes hideloader() function is called
+      // to hide that loader 
+      this.response = response
+      console.log(this.response)
+      this.dropDownData = this.response.data
+      
+
+      
+
+    });
+    //this.addLi("listFileName",this.obj.files[0].name);
+  }
+  ngAfterViewInit(): void {
+    ace.config.set("fontSize", "14px");
+    ace.config.set(
+      "basePath",
+      "https://unpkg.com/ace-builds@1.4.12/src-noconflict"
+    );
+    const aceEditor = ace.edit(this.editor.nativeElement);
+    aceEditor.session.setValue(this.obj.files[0].content);
+    //aceEditor.session.setValue("toto=\"Welcome to our compilator\" ");
+    aceEditor.setTheme("ace/theme/dracula");
+    aceEditor.session.setMode("ace/mode/python");
+    aceEditor.on("change", () => {
+      var index = this.obj.files.map(function(o) { return o.name; }).indexOf(this.fileSelected);
+      console.log(aceEditor.getValue());
+      this.test= aceEditor.getValue();
+      this.obj.files[index].content=this.test;
+      console.log(this.test)
+    });
+  }
   datas ={
     "python3":"python",
     "c++":"c_cpp",
@@ -126,8 +174,7 @@ export class EditeurComponent implements AfterViewInit {
       "execution_time": 0.1111
     }
   };
-  error;
-  retour;
+
 
   res_Id_post = 2
   alert: IAlert;
@@ -142,27 +189,93 @@ export class EditeurComponent implements AfterViewInit {
       "execution_time": 0.1111
     }
   }
+
+  obj = {
+    lang: "text",
+    files: [
+      {
+        "name":"Welcome.txt",
+        "content": "toto= Welcome to our compilator "
+      }
+    ]
+  };
+  fileSelected="Welcome.txt";
+
+  showFile(fileName:string){
+    this.fileSelected=fileName;
+    var index = this.obj.files.map(function(o) { return o.name; }).indexOf(fileName);
+    console.log("index of 'john': " + index);
+    const aceEditor = ace.edit(this.editor.nativeElement);
+    aceEditor.session.setValue(this.obj.files[index].content);
+  }
+  public addLi(idName: string , fileName:string){
+    var ul = document.getElementById(idName);
+    var a = document.createElement("button");
+    a.textContent= fileName;
+    a.setAttribute('onclick', "showFile(\""+fileName+"\")");
+    a.setAttribute("class","btn btn-link");
+    var li = document.createElement("li");
+    li.appendChild(a);
+    ul.appendChild(li);
+
+  }
+
+  public newFile(){
+    var verifName = this.obj.files.map(function(o) { return o.name; });
+    
+    var input =  (document.getElementById("nameFile")) as HTMLInputElement;
+    console.log(input.value)
+    if (verifName.includes(input.value) || input.value==""){
+      alert("nom faux");
+    }
+    else{
+      this.obj.files.push({name : input.value,content:"dsds"});
+      console.log(this.obj);
+      //this.addLi("listFileName",input.value);
+      // var ul = document.getElementById("listFileName");
+      // var li = document.createElement("li");
+      // li.appendChild(document.createTextNode(input.value));
+      // ul.appendChild(li);
+    }
+//     var index = this.obj.files.map(function(o) { return o.name; }).indexOf("john");
+// console.log("index of 'john': " + index);
+
+// var index =  this.obj.files.map((o) => o.name).indexOf("larry");
+// console.log("index of 'larry': " + index);
+
+// var index =  this.obj.files.map(function(o) { return o.name; }).indexOf("fred");
+// console.log("index of 'fred': " + index);
+
+// var index =  this.obj.files.map((o) => o.content).indexOf("pizza");
+// console.log("index of 'pizza' in 'attr2': " + index);
+  }
+
+  
   public run(){
     var e = (document.getElementById("selectLangage")) as HTMLSelectElement;
     var strLangage = e.options[e.selectedIndex].text;
-    var input =  (document.getElementById("name")) as HTMLInputElement;
-    console.log(input.value)
+    //var input =  (document.getElementById("")) as HTMLInputElement;
+    //console.log(input.value)
     const aceEditor = ace.edit(this.editor.nativeElement);
     console.log(aceEditor.getValue())
     console.log(strLangage);
 
-    const data = {
-      lang: strLangage,
-      files: [
-        {
-          name: input.value,
-          content: aceEditor.getValue()
-        }
-      ]
-    };
-    console.log(data);
+    // const data = {
+    //   lang: strLangage,
+    //   files: [
+    //     {
+    //       name: input.value,
+    //       content: aceEditor.getValue()
+    //     }
+    //   ]
+    // };
+    this.obj.lang=strLangage;
+    console.log("----------------------------------");
+    console.log(this.obj);
+    console.log("----------------------------------");
+    //console.log(data);
     console.log("rzrzerze")
-    this.http.put('http://127.0.0.1:4382/compile',data)
+    this.http.put('http://127.0.0.1:4382/compile',this.obj)
     .subscribe(response  => {
       this.hash = response
       this.hash = this.hash.data.hash
@@ -192,52 +305,11 @@ export class EditeurComponent implements AfterViewInit {
     // let content_err = document.createTextNode(this.post.stderr);
     // document.getElementById("retour").appendChild(content_retour);
     // document.getElementById("err").appendChild(content_err);
-    this.retour=this.post.stdout
-    this.error=this.post.stderr
-    
-  }
-
-  public onOptionsSelected(event) {
-    console.log(event);
-    const aceEditor = ace.edit(this.editor.nativeElement);
-    aceEditor.session.setMode("ace/mode/"+event);
-  }
-  @ViewChild("editor") private editor: ElementRef<HTMLElement>;
-
-
-  ngOnInit(){
 
     
-    this.http.get('http://127.0.0.1:4382/languages')
-    .subscribe(response  => {
-  
-      // If response comes hideloader() function is called
-      // to hide that loader 
-      this.response = response
-      console.log(this.response)
-      this.dropDownData = this.response.data
-    
-
-      
-
-    });
   }
-  ngAfterViewInit(): void {
-    ace.config.set("fontSize", "14px");
-    ace.config.set(
-      "basePath",
-      "https://unpkg.com/ace-builds@1.4.12/src-noconflict"
-    );
-    const aceEditor = ace.edit(this.editor.nativeElement);
-    aceEditor.session.setValue("toto=\"Welcome to our compilator\" ");
-    aceEditor.setTheme("ace/theme/dracula");
-    aceEditor.session.setMode("ace/mode/python");
-    aceEditor.on("change", () => {
-      console.log(aceEditor.getValue());
-      this.test= aceEditor.getValue();
-      console.log(this.test)
-    });
-  }
+
+
 
   @Input()
   public alerts: Array<IAlert> = [];
