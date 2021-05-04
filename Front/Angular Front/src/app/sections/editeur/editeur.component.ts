@@ -181,7 +181,7 @@ export class EditeurComponent implements AfterViewInit {
 
   post={
     "stdout": "string",
-    "stderr": "ERRRRRRRERRRRRRRERRRRRRRERRRRRRRERRRRRRRERRRRRRRERRRRRRRERRRRRRRERRRRRRRERRRRRRRERRRRRRRERRRRRRRERRRRRRRERRRRRRRERRRRRRRERRRRRRRERRRRRRRERRRRRRRERRRRRRR",
+    "stderr": "aaaaa",
     "logs": {
       "id":0 ,
       "message": "string",
@@ -189,17 +189,17 @@ export class EditeurComponent implements AfterViewInit {
       "execution_time": 0.1111
     }
   }
-
+  nom="main.cpp";
   obj = {
     lang: "text",
     files: [
       {
-        "name":"Welcome.txt",
+        "name":this.nom,
         "content": "toto= Welcome to our compilator "
       }
     ]
   };
-  fileSelected="Welcome.txt";
+  fileSelected=this.nom;
 
   showFile(fileName:string){
     this.fileSelected=fileName;
@@ -326,23 +326,30 @@ export class EditeurComponent implements AfterViewInit {
           icon: 'ni ni-like-2'
       }, {
           id: 1,
-          strong: 'Info!',
-          type: 'info',
-          message: 'La compilation est en cours !',
+          strong: 'Failed!',
+          type: 'warning',
+          message: 'Problème lors de la compilation!',
           icon: 'ni ni-bell-55'
       }, {
           id: 2,
           type: 'warning',
           strong: 'Warning!',
-          message: 'La compilation met trop de temps à s\'éxécuter !',
+          message: 'L\'éxécution n\'a pas marché !',
           icon: 'ni ni-bell-55'
       }, {
           id: 3,
-          type: 'danger',
+          type: 'warning',
           strong: 'Danger!',
-          message: 'La compilation a échoué!',
+          message: 'La compilation ou l\'éxécution du code a mis trop de temps pour s\'éxécuter!',
           icon: 'ni ni-support-16'
-      });
+      },
+      {
+        id: 4,
+        type: 'warning',
+        strong: 'Erreur!',
+        message: 'Erreur inconnue!',
+        icon: 'ni ni-support-16'
+    });
       this.backup = this.alerts.map((alert: IAlert) => Object.assign({}, alert));
   }
 
