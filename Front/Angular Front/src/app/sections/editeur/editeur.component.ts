@@ -42,9 +42,11 @@ export interface IAlert {
   </div>
   <div style="display:flex;">
 
-    <div  class="overflow-scroll" style=" color:white ;max-height : 500px;max-width : 20vh;overflow: auto;">
+    <div  class="overflow-scroll" style="max-height : 500px;max-width : 20vh;overflow: auto;">
     <ul id="listFileName" style="list-style-type:none;padding:0;" >
-      <li  *ngFor="let item of obj.files"><button id="{{ item.name }}" class="btn btn-link" (click)="showFile(item.name)">{{ item.name }} </button></li>
+      <li  *ngFor="let item of obj.files">
+        <div id="{{ item.name }}" (dblclick)="editFileName(item)"(click)="showFile(item.name)" *ngIf=!item.edit>{{ item.name }} </div>
+        <input type='text' *ngIf=item.edit [(ngModel)]=item.name (blur)="editFileName(item)" /></li>
 
     </ul>
     </div>
@@ -138,7 +140,7 @@ export class EditeurComponent implements AfterViewInit {
     );
     const aceEditor = ace.edit(this.editor.nativeElement);
     aceEditor.session.setValue(this.obj.files[0].content);
-    //aceEditor.session.setValue("toto=\"Welcome to our compilator\" ");
+    //aceEditor.session.setValue("editFileName=\"Welcome to our compilator\" ");
     aceEditor.setTheme("ace/theme/dracula");
     aceEditor.session.setMode("ace/mode/python");
     aceEditor.on("change", () => {
@@ -195,16 +197,26 @@ export class EditeurComponent implements AfterViewInit {
     files: [
       {
         "name":this.nom,
-        "content": "toto= Welcome to our compilator "
+        "content": "editFileName= Welcome to our compilator ",
+        "edit":false
       }
     ]
   };
   fileSelected=this.nom;
 
+  editFileName(item:any){
+    var verifName = this.obj.files.filter(function(o) { return o.name==item.name});
+    if(item.edit==false || (item.name.length>0 && verifName.length<2) ){
+      item.edit=!item.edit;
+    }
+
+    
+  }
+
   showFile(fileName:string){
     this.fileSelected=fileName;
     var index = this.obj.files.map(function(o) { return o.name; }).indexOf(fileName);
-    console.log("index of 'john': " + index);
+  
     const aceEditor = ace.edit(this.editor.nativeElement);
     aceEditor.session.setValue(this.obj.files[index].content);
   }
@@ -229,7 +241,7 @@ export class EditeurComponent implements AfterViewInit {
       alert("nom faux");
     }
     else{
-      this.obj.files.push({name : input.value,content:"dsds"});
+      this.obj.files.push({name : input.value,content:"dsds",edit:false});
       console.log(this.obj);
       //this.addLi("listFileName",input.value);
       // var ul = document.getElementById("listFileName");
