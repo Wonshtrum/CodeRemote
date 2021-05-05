@@ -1,0 +1,68 @@
+<div class="container">
+  <h3 class="h4 text-success font-weight-bold mb-4">Exemples de codes à compiler</h3>
+  <div class="row justify-content-center">
+    <div class="col-lg-6">
+      <!-- Tabs with icons -->
+      <div class="mb-3">
+        <small class="text-uppercase font-weight-bold">Python</small>
+      </div>
+        <ngb-tabset [justify]="'center'" class="custom-tab-content flex-column flex-md-row" type="pills">
+            <ngb-tab>
+              <ng-template ngbTabTitle>
+                <i ></i> main.py
+              </ng-template>
+                <ng-template ngbTabContent>
+                  <pre >
+                    from test import hello
+
+                    print(hello())
+                  </pre>
+            
+                </ng-template>
+            </ngb-tab>
+            <ngb-tab>
+              <ng-template ngbTabTitle>
+                <i ></i> test.py
+              </ng-template>
+                <ng-template ngbTabContent>
+                   <pre ngNonBindable>
+                     def hello():
+                      toto = "Bonjour"
+                      tata = " compilateur!"
+                      return(toto+tata)&#123;&#125;
+                   </pre>
+                </ng-template>
+            </ngb-tab>
+
+        </ngb-tabset>
+    </div>
+    <div class="col-lg-6 mt-5 mt-lg-0">
+      <!-- Menu -->
+      <div class="mb-3">
+        <small class="text-uppercase font-weight-bold">C++</small>
+      </div>
+      <ngb-tabset [justify]="'center'" class="custom-tab-content flex-column flex-md-row" type="pills">
+          <ngb-tab title="test.h">
+            <ng-template ngbTabContent>
+             <pre>
+               <code [innerHTML]="codeC_1"></code>
+             </pre>
+            </ng-template>
+          </ngb-tab>
+          <ngb-tab title="test.cpp">
+            <ng-template ngbTabContent>
+              <pre>
+                <code [innerHTML]="codeC_2"></code>
+              </pre>
+            </ng-template>
+          </ngb-tab>
+          <ngb-tab title="main.cpp">
+            <ng-template ngbTabContent>
+              <pre>
+                <code [innerHTML]="codeC_3"></code>
+              </pre>
+            </ng-template>
+          </ngb-tab>
+      </ngb-tabset>
+    </div>
+  </div>
