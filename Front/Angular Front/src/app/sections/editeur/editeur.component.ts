@@ -17,18 +17,11 @@ export interface IAlert {
 @Component({
   selector: "app-editeur",
   template: `
-  <section class="section pb-0 section-components" (oninit)="loadLanguage() ">
+  
   <div class="container mb-5">
   <div class="col-lg-2 col-sm-2">
-  <div class="form-group">
-    <input type="text" id="nameFile" placeholder="Nom du fichier" class="form-control" />
-    <button type="button" class="btn btn-primary" (click)="newFile()">+</button>
-    <button type="button" class="btn btn-primary" >-</button>
-  </div>
-  <p>
-<ngb-alert #selfClosingAlert *ngIf="successMessage" type="success" (closed)="successMessage = ''">{{ successMessage }}
-</ngb-alert>
-</p>
+
+
   <div class="form-group">
   <select class='select-option' 
     id ="selectLangage"
@@ -42,15 +35,23 @@ export interface IAlert {
   </div>
   <div style="display:flex;">
 
-    <div  class="overflow-scroll" style="max-height : 500px;max-width : 20vh;overflow: auto;">
-    <ul id="listFileName" style="list-style-type:none;padding:0;" >
+    <div  class="overflow-scroll" style="max-height : 500px;width : 100px;">
+    <ul id="listFileName" style="list-style-type:none;padding:0;padding-right:1em;" >
       <li  *ngFor="let item of obj.files">
-        <div id="{{ item.name }}" (dblclick)="editFileName(item)"(click)="showFile(item.name)" *ngIf=!item.edit>{{ item.name }} </div>
-        <input type='text' *ngIf=item.edit [(ngModel)]=item.name (blur)="editFileName(item)" /></li>
+      <div style="float:right;" *ngIf=!item.edit (click)="deletefile()"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash" viewBox="0 0 16 16">
+      <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/>
+      <path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/>
+    </svg></div>
+        <div id="{{ item.name }}" (dblclick)="editFileName(item)"(click)="showFile(item)" *ngIf=!item.edit style="text-overflow: ellipsis;
+        overflow: hidden;">{{ item.name }} </div>
+        
+        <input type='text' *ngIf=item.edit [(ngModel)]=item.name (focusout)="editFileName(item)" style="width:100%;"/></li>
 
     </ul>
+    <button type="button" class="btn btn-primary" (click)="newFile()">+</button>
     </div>
     <div
+      
       class="app-ace-editor"
       id="app-ace-editor"
       #editor
@@ -92,7 +93,7 @@ export interface IAlert {
   </div>
 </div>
 
-</section>
+
   `,
   styles: [
     `
@@ -119,18 +120,11 @@ export class EditeurComponent implements AfterViewInit {
     
     this.http.get('http://127.0.0.1:4382/languages')
     .subscribe(response  => {
-  
-      // If response comes hideloader() function is called
-      // to hide that loader 
       this.response = response
       console.log(this.response)
       this.dropDownData = this.response.data
-      
-
-      
-
     });
-    //this.addLi("listFileName",this.obj.files[0].name);
+ 
   }
   ngAfterViewInit(): void {
     ace.config.set("fontSize", "14px");
@@ -140,15 +134,14 @@ export class EditeurComponent implements AfterViewInit {
     );
     const aceEditor = ace.edit(this.editor.nativeElement);
     aceEditor.session.setValue(this.obj.files[0].content);
-    //aceEditor.session.setValue("editFileName=\"Welcome to our compilator\" ");
     aceEditor.setTheme("ace/theme/dracula");
     aceEditor.session.setMode("ace/mode/python");
     aceEditor.on("change", () => {
       var index = this.obj.files.map(function(o) { return o.name; }).indexOf(this.fileSelected);
       console.log(aceEditor.getValue());
-      this.test= aceEditor.getValue();
-      this.obj.files[index].content=this.test;
-      console.log(this.test)
+      this.contentIDE= aceEditor.getValue();
+      this.obj.files[index].content=this.contentIDE;
+      console.log(this.contentIDE)
     });
   }
   datas ={
@@ -160,15 +153,14 @@ export class EditeurComponent implements AfterViewInit {
   }
 
   stock={}
-  lang={}
-  // dropDownData= ['python3', 'c++', 'c','php','java','prolog']
+
   dropDownData ;
   response;
-  test = "";
+  contentIDE;
   hash;
   resultPost : any={
-    "stdout": "string",
-    "stderr": "ERRRRRRRERRRRRRRERRRRRRRERRRRRRRERRRRRRRERRRRRRRERRRRRRRERRRRRRRERRRRRRRERRRRRRRERRRRRRRERRRRRRRERRRRRRRERRRRRRRERRRRRRRERRRRRRRERRRRRRRERRRRRRRERRRRRRR",
+    "stdout": "Bloc Out",
+    "stderr": "Bloc Err",
     "logs": {
       "id":0 ,
       "message": "string",
@@ -178,19 +170,10 @@ export class EditeurComponent implements AfterViewInit {
   };
 
 
-  res_Id_post = 2
+
   alert: IAlert;
 
-  post={
-    "stdout": "string",
-    "stderr": "aaaaa",
-    "logs": {
-      "id":0 ,
-      "message": "string",
-      "compilation_time": 0.222,
-      "execution_time": 0.1111
-    }
-  }
+
   nom="main.cpp";
   obj = {
     lang: "text",
@@ -212,111 +195,73 @@ export class EditeurComponent implements AfterViewInit {
 
     
   }
-
-  showFile(fileName:string){
-    this.fileSelected=fileName;
-    var index = this.obj.files.map(function(o) { return o.name; }).indexOf(fileName);
-  
+  deletefile(item:any){
+    this.obj.files.splice(this.obj.files.indexOf(item),1);
     const aceEditor = ace.edit(this.editor.nativeElement);
-    aceEditor.session.setValue(this.obj.files[index].content);
+    aceEditor.session.setValue("");
+ 
   }
-  public addLi(idName: string , fileName:string){
-    var ul = document.getElementById(idName);
-    var a = document.createElement("button");
-    a.textContent= fileName;
-    a.setAttribute('onclick', "showFile(\""+fileName+"\")");
-    a.setAttribute("class","btn btn-link");
-    var li = document.createElement("li");
-    li.appendChild(a);
-    ul.appendChild(li);
+  showFile(item:any){
+    this.fileSelected=item.name;
+  
 
+    const aceEditor = ace.edit(this.editor.nativeElement);
+    aceEditor.session.setValue(item.content);
   }
+
 
   public newFile(){
-    var verifName = this.obj.files.map(function(o) { return o.name; });
-    
-    var input =  (document.getElementById("nameFile")) as HTMLInputElement;
-    console.log(input.value)
-    if (verifName.includes(input.value) || input.value==""){
-      alert("nom faux");
-    }
-    else{
-      this.obj.files.push({name : input.value,content:"dsds",edit:false});
-      console.log(this.obj);
-      //this.addLi("listFileName",input.value);
-      // var ul = document.getElementById("listFileName");
-      // var li = document.createElement("li");
-      // li.appendChild(document.createTextNode(input.value));
-      // ul.appendChild(li);
-    }
-//     var index = this.obj.files.map(function(o) { return o.name; }).indexOf("john");
-// console.log("index of 'john': " + index);
-
-// var index =  this.obj.files.map((o) => o.name).indexOf("larry");
-// console.log("index of 'larry': " + index);
-
-// var index =  this.obj.files.map(function(o) { return o.name; }).indexOf("fred");
-// console.log("index of 'fred': " + index);
-
-// var index =  this.obj.files.map((o) => o.content).indexOf("pizza");
-// console.log("index of 'pizza' in 'attr2': " + index);
+    this.obj.files.push({name : "",content:"dsds",edit:true});
+    console.log(this.obj);
   }
 
   
   public run(){
-    var e = (document.getElementById("selectLangage")) as HTMLSelectElement;
-    var strLangage = e.options[e.selectedIndex].text;
-    //var input =  (document.getElementById("")) as HTMLInputElement;
-    //console.log(input.value)
-    const aceEditor = ace.edit(this.editor.nativeElement);
-    console.log(aceEditor.getValue())
-    console.log(strLangage);
+    var values = this.obj.files.map(function(o) { return o.edit; });
+    if (values.includes(true)){
+      alert("Veuillez saisir un nom pour chaque fichier");
+    }
+    else{
+      var e = (document.getElementById("selectLangage")) as HTMLSelectElement;
+      var strLangage = e.options[e.selectedIndex].text;
 
-    // const data = {
-    //   lang: strLangage,
-    //   files: [
-    //     {
-    //       name: input.value,
-    //       content: aceEditor.getValue()
-    //     }
-    //   ]
-    // };
-    this.obj.lang=strLangage;
-    console.log("----------------------------------");
-    console.log(this.obj);
-    console.log("----------------------------------");
-    //console.log(data);
-    console.log("rzrzerze")
-    this.http.put('http://127.0.0.1:4382/compile',this.obj)
-    .subscribe(response  => {
-      this.hash = response
-      this.hash = this.hash.data.hash
+      const aceEditor = ace.edit(this.editor.nativeElement);
+      console.log(aceEditor.getValue())
+      console.log(strLangage);
 
-      console.log(this.hash)
-      console.log(response)
-      this.http.post('http://127.0.0.1:4382/result',{"hash":this.hash})
-      .subscribe(response   => {
-
-        this.resultPost=response
-        this.resultPost = this.resultPost.data
+      this.obj.lang=strLangage;
+      console.log("----------------------------------");
+      console.log(this.obj);
+      console.log("----------------------------------");
+      //console.log(data);
+      console.log("rzrzerze")
+      this.http.put('http://127.0.0.1:4382/compile',this.obj)
+      .subscribe(response  => {
+        this.hash = response
+        this.hash = this.hash.data.hash
+  
+        console.log(this.hash)
         console.log(response)
-        document.getElementById("res").className = "container";
-        this.stock=this.alerts[this.resultPost.logs.status];
-        
+        this.http.post('http://127.0.0.1:4382/result',{"hash":this.hash})
+        .subscribe(response   => {
+  
+          this.resultPost=response
+          this.resultPost = this.resultPost.data
+          console.log(response)
+          document.getElementById("res").className = "container";
+          this.stock=this.alerts[this.resultPost.logs.status];
+          
+        });
       });
-    });
-    console.log("zeezrzerfsdf")
+      console.log("zeezrzerfsdf")
+    }
+    
 
   
 
 
 
-    // axios post renvoie res succes avec le texte
 
-    // let content_retour = document.createTextNode(this.post.stdout);
-    // let content_err = document.createTextNode(this.post.stderr);
-    // document.getElementById("retour").appendChild(content_retour);
-    // document.getElementById("err").appendChild(content_err);
 
     
   }
