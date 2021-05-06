@@ -54,14 +54,19 @@
 }
 
 #div1{
-   
+    display: flex;
     padding: 2%;
     
 }
 
 #selectLangage{
     
-    width: 200px;
+    background-color: #5e72e4;
+    color: white;
+    border-radius: 5px;
+    
+    font-weight: bold;
+    padding: 1rem;
 }
 
 #buttonRun{
@@ -113,4 +118,23 @@ section{
     flex-direction: column;
     height: 100%;
     padding-bottom: 2rem; padding-top: 6rem;
+}
+
+
+
+.blocAlert{
+    flex: 1;
+    display: inline-block;
+}
+
+.alert{
+   margin: 0;
+}
+
+#buttonRun {
+    margin-left: 0.5rem;
+}
+
+.btn-lg{
+    padding: 1rem 1rem;
 }

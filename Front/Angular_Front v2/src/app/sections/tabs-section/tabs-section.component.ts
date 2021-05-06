@@ -8,6 +8,19 @@ import { Component, OnInit } from '@angular/core';
 export class TabsSectionComponent implements OnInit {
   page = 2;
   page1 = 3;
+
+  codePython_1=`
+  from test import hello
+  print(hello())
+  `
+  codePython_2=`
+  def hello():
+    toto = "Bonjour"
+    tata = " compilateur!"
+    return(toto+tata)
+  `
+
+
   codeC_1=`
   #ifndef __TEST_H__
   #define __TEST_H__

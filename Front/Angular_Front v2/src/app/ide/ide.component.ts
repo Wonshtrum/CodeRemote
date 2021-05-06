@@ -47,11 +47,11 @@ export class IdeComponent implements AfterViewInit {
       "https://unpkg.com/ace-builds@1.4.12/src-noconflict"
     );
     const aceEditor = ace.edit(this.editor.nativeElement);
-    aceEditor.session.setValue(this.obj.files[0].content);
+    aceEditor.session.setValue("");
     aceEditor.setTheme("ace/theme/dracula");
     aceEditor.session.setMode("ace/mode/python");
     aceEditor.on("change", () => {
-      var index = this.obj.files.map(function(o) { return o.name; }).indexOf(this.fileSelected);
+      var index = this.obj.files.map(function(o:any) { return o.name; }).indexOf(this.fileSelected);
       console.log(aceEditor.getValue());
       this.contentIDE= aceEditor.getValue();
       this.obj.files[index].content=this.contentIDE;
@@ -67,15 +67,15 @@ export class IdeComponent implements AfterViewInit {
     "rust":"rust"
   }
 
-  stock={}
+  stock: Array<IAlert> = [];
 
   dropDownData ;
   response;
   contentIDE;
   hash;
   resultPost : any={
-    "stdout": "Bloc Out",
-    "stderr": "Bloc Err",
+    "stdout": "",
+    "stderr": "",
     "logs": {
       "id":0 ,
       "message": "string",
@@ -90,21 +90,21 @@ export class IdeComponent implements AfterViewInit {
   alert: IAlert;
 
 
-  nom="main.cpp";
+  defaultFile="Untitled.txt";
   obj = {
     lang: "text",
     files: [
       {
-        "name":this.nom,
-        "content": "editFileName= Welcome to our compilator ",
+        "name":this.defaultFile,
+        "content": "",
         "edit":false
       }
     ]
   };
-  fileSelected=this.nom;
+  fileSelected=this.defaultFile;
 
   editFileName(item:any){
-    var verifName = this.obj.files.filter(function(o) { return o.name==item.name});
+    var verifName = this.obj.files.filter(function(o:any) { return o.name==item.name});
     const aceEditor = ace.edit(this.editor.nativeElement);
     if(item.edit==false || (item.name.length>0 && verifName.length<2) ){
       item.edit=!item.edit;
@@ -116,8 +116,25 @@ export class IdeComponent implements AfterViewInit {
   }
   deletefile(item:any){
     this.obj.files.splice(this.obj.files.indexOf(item),1);
+    console.log(this.obj.files);
+    console.log("fdfsdfdfd");
     const aceEditor = ace.edit(this.editor.nativeElement);
-    aceEditor.session.setValue("");
+    if (this.obj.files.length==0){
+      this.obj.files.push({name : this.defaultFile,content:"",edit:false});
+      this.fileSelected=this.defaultFile;
+      aceEditor.session.setValue("");
+    }
+    else if(item.name==this.fileSelected){
+      console.log(this.obj.files[0]);
+      console.log(this.obj.files[0].name);
+      console.log("qddsf");
+      this.fileSelected=this.obj.files[0].name;
+      aceEditor.session.setValue(this.obj.files[0].content);
+      
+      console.log(this.obj.files[0].name);
+    }
+    
+
  
   }
   showFile(item:any){
@@ -133,7 +150,7 @@ export class IdeComponent implements AfterViewInit {
 
 
   public newFile(){
-    var values = this.obj.files.map(function(o) { return o.edit; });
+    var values = this.obj.files.map(function(o:any) { return o.edit; });
     if (values.includes(true)){
       alert("Veuillez saisir un nom pour chaque fichier");
     }
@@ -145,7 +162,9 @@ export class IdeComponent implements AfterViewInit {
 
   
   public run(){
-    var values = this.obj.files.map(function(o) { return o.edit; });
+    this.stock=[];
+  
+    var values = this.obj.files.map(function(o:any) { return o.edit; });
     if (values.includes(true)){
       alert("Veuillez saisir un nom pour chaque fichier");
     }
@@ -176,9 +195,10 @@ export class IdeComponent implements AfterViewInit {
           this.resultPost=response
           this.resultPost = this.resultPost.data
           console.log(response)
-         
-          this.stock=this.alerts[this.resultPost.logs.status];
+          console.log(this.stock);
+          this.stock.push(this.alerts[this.resultPost.logs.status]);
           this.visible=true;
+          console.log(this.stock);
         });
       });
       console.log("zeezrzerfsdf")
@@ -239,6 +259,6 @@ export class IdeComponent implements AfterViewInit {
   }
 
   close(alert: IAlert) {
-    this.alerts.splice(this.alerts.indexOf(alert), 1);
+    this.stock.splice(this.stock.indexOf(alert), 1);
   }
 }
