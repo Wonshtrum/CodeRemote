@@ -41,11 +41,10 @@
                 Lors de l'éxécution des fichiers, vous retrouverez une pop-up qui synthétisera l'état de la compilation. Et dans les deux blocs en dessous, soit le résultat de la compilation ou les erreurs présentes dans le code du ou des fichiers.</span>
               </div>
               <div class="col">
-                <span>Hac ita persuasione reducti intra moenia bellatores obseratis undique portarum aditibus, propugnaculis insistebant et pinnis, congesta undique saxa telaque habentes in promptu, ut si quis se proripuisset interius, multitudine missilium sterneretur et lapidum.
-        
-                  Quaestione igitur per multiplices dilatata fortunas cum ambigerentur quaedam, non nulla levius actitata constaret, post multorum clades Apollinares ambo pater et filius in exilium acti cum ad locum Crateras nomine pervenissent, villam scilicet suam quae ab Antiochia vicensimo et quarto disiungitur lapide, ut mandatum est, fractis cruribus occiduntur.
-                  
-                  Et est admodum mirum videre plebem innumeram mentibus ardore quodam infuso cum dimicationum curulium eventu pendentem. haec similiaque memorabile nihil vel serium agi Romae permittunt. ergo redeundum ad textum.</span>
+                <span>OCE copie tous les fichiers envoyé au même niveau, vous ne pouvez pas créer d'arborescence. L'évaluation de votre code se fait dans un conteneur en deux phase : la compilation et l’exécution.<br>
+                     Dans le cas de langages interprété, la compilation n'a aucun effet. Pour les autres langages, la compilation affecte tous les fichiers sources. OCE considère tous les fichiers avec l'extension attendue du langage en minuscule (i.e. ".cpp", ".java", ".rs") comme des fichiers sources.<br>
+                    OCE attend un seul et unique entrypoint. Pour les langages où le point d'entré n'est pas défini à la compilation (python, java) OCE tente de le définir de la façon suivante : si un unique fichier source est trouvé, il est considéré comme le point d'entré, si plusieurs sources sont trouvés, OCE attend un fichier nommé "main" (suivi de l'extension du langage).<br>
+                    Le conteneur qui vous est alloué est restreint en RAM, CPU et PID. Une limite de temps de 10 secondes est également appliquée pour chaque phase. Si la compilation ou l’exécution dépasse ce délai, votre requête sera rejeté.</span>
               </div>
       
             </div>
