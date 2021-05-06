@@ -8,26 +8,28 @@ import { RouterModule } from '@angular/router';
 
 import { SectionsComponent } from './sections.component';
 
-import { InputsSectionComponent } from './inputs-section/inputs-section.component';
+
 
 import { TabsSectionComponent } from './tabs-section/tabs-section.component';
-import { AlertsSectionComponent } from './alerts-section/alerts-section.component';
+
 
 import { NgbdModalComponent } from './modal/modal.component';
 import { NgbdModalContent } from './modal/modal.component';
+import { TextSectionComponent } from './text-section/text-section.component';
 
 
 @NgModule({
   declarations: [
     SectionsComponent,
 
-    InputsSectionComponent,
+
 
     TabsSectionComponent,
-    AlertsSectionComponent,
+
 
     NgbdModalComponent,
-    NgbdModalContent
+    NgbdModalContent,
+    TextSectionComponent
 
   ],
   entryComponents: [NgbdModalContent],
