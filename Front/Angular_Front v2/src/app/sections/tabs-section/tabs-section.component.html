@@ -40,7 +40,11 @@
           <ngb-tab title="test.h">
             <ng-template ngbTabContent>
              <pre>
-               <code [innerHTML]="codeC_1"></code>
+              #ifndef __TEST_H__
+              #define __TEST_H__
+              #include &lt;iostream&#62;
+              void test();
+              #endif
              </pre>
             </ng-template>
           </ngb-tab>

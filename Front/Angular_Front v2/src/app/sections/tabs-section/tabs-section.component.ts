@@ -24,7 +24,7 @@ export class TabsSectionComponent implements OnInit {
   codeC_1=`
   #ifndef __TEST_H__
   #define __TEST_H__
-  #include <iostream>
+  #include dsds
   void test();
   #endif
   `
