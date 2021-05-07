@@ -14,12 +14,14 @@ const lang_discord_to_api = {
     'py': 'python3',
     'python': 'python3',
     'cpp': 'c++',
+    'rs':'rust',
   }
   const lang_to_ext = {
     'python3': '.py',
     'c++': '.cpp',
     'c': '.c',
     'java': '.java',
+    'rust':'.rs',
   }
 
 
@@ -82,18 +84,31 @@ client.on('message', message =>{
             let cleanlanguage = lang_discord_to_api[language] || language;
             let code = block.substring(firstNL+1);
             let cleancode = Discord.Util.escapeCodeBlock(code);
+            let className;
+
+            if (cleanlanguage=="java") {
+                className = cleancode.match(/public +class +([^{ ]*)/);
+                className = (className || cleancode.match(/class +([^{ ]*)/));
+                if (className===null) {
+                    message.channel.send("Nom de classe non défini jsp démerde toi");
+                    return;
+                }
+                className=className[1];
+                
+            }else(
+                className= "DiscordRequest"
+            );
 
             let ext = lang_to_ext[cleanlanguage] || ".txt";
                 request = {
                     "lang" : cleanlanguage,
                     "files" : [{
-                        "name" : "DiscordRequest"+ext,
+                        "name" : className+ext,
                         "content" : cleancode
                     }]
             }
 
             if (languages.includes(cleanlanguage)) {
-                
                 axios.put(`http://127.0.0.1:4382/compile`,request)
                 .then(response =>{ 
     
